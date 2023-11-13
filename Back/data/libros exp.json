@@ -1,0 +1,100 @@
+[{
+  "_id": {
+    "$oid": "6541683b8d4d0380e4b6b1da"
+  },
+  "id": 1,
+  "titulo": "El Gran Gatsby",
+  "autor": "F. Scott Fitzgerald",
+  "cant": 5,
+  "prestable": true
+},
+{
+  "_id": {
+    "$oid": "6541683b8d4d0380e4b6b1db"
+  },
+  "id": 2,
+  "titulo": "Matar un ruiseñor",
+  "autor": "Harper Lee",
+  "cant": 8,
+  "prestable": true
+},
+{
+  "_id": {
+    "$oid": "6541683b8d4d0380e4b6b1dc"
+  },
+  "id": 3,
+  "titulo": "Don Quijote de la Mancha",
+  "autor": "Miguel de Cervantes",
+  "cant": 12,
+  "prestable": true
+},
+{
+  "_id": {
+    "$oid": "6541683b8d4d0380e4b6b1dd"
+  },
+  "id": 4,
+  "titulo": "Crimen y castigo",
+  "autor": "Fiodor Dostoievski",
+  "cant": 6,
+  "prestable": true
+},
+{
+  "_id": {
+    "$oid": "6541683b8d4d0380e4b6b1de"
+  },
+  "id": 5,
+  "titulo": "Harry Potter y la Piedra Filosofal",
+  "autor": "J.K. Rowling",
+  "cant": 10,
+  "prestable": true
+},
+{
+  "_id": {
+    "$oid": "6541683b8d4d0380e4b6b1df"
+  },
+  "id": 6,
+  "titulo": "Los Juegos del Hambre",
+  "autor": "Suzanne Collins",
+  "cant": 7,
+  "prestable": true
+},
+{
+  "_id": {
+    "$oid": "6541683b8d4d0380e4b6b1e0"
+  },
+  "id": 7,
+  "titulo": "La Carretera",
+  "autor": "Cormac McCarthy",
+  "cant": 3,
+  "prestable": false
+},
+{
+  "_id": {
+    "$oid": "6541683b8d4d0380e4b6b1e1"
+  },
+  "id": 8,
+  "titulo": "Cien años de soledad",
+  "autor": "Gabriel García Márquez",
+  "cant": 4,
+  "prestable": true
+},
+{
+  "_id": {
+    "$oid": "6541683b8d4d0380e4b6b1e2"
+  },
+  "id": 9,
+  "titulo": "Código Da Vinci",
+  "autor": "Dan Brown",
+  "cant": 9,
+  "prestable": true
+},
+{
+  "_id": {
+    "$oid": "6541683b8d4d0380e4b6b1e3"
+  },
+  "id": 10,
+  "titulo": "1984",
+  "autor": "George Orwell",
+  "cant": 6,
+  "prestable": true
+}]
