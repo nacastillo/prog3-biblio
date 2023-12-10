@@ -1,10 +1,16 @@
 import React from 'react';
 import { Button, Checkbox, Form, Input } from 'antd';
+import lbServ from '../../services/librapi'
+
+async function loguear (v) {
+    console.log(v);
+    lbServ.login(v.email,v.pwd);
+}
 
 function Login() {
     const onFinish = (values) => {
         console.log('Success:', values);
-        alert("Inicio de sesión correcto.");
+        loguear(values);
     };
     const onFinishFailed = (errorInfo) => {
         console.log('Failed:', errorInfo);
@@ -18,8 +24,8 @@ function Login() {
               autoComplete="off"              
               >
             <Form.Item 
-              label="Usuario" 
-              name="username" 
+              label="Correo" 
+              name="email" 
               rules={[{
                 required: true, 
                 message: 'Please input your username!',
@@ -30,7 +36,7 @@ function Login() {
 
             <Form.Item
               label="Contraseña"
-              name="password"
+              name="pwd"
               rules={[{
                 required: true,
                 message: 'Please input your password!',

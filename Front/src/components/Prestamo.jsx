@@ -1,14 +1,6 @@
 import React from 'react'
 import {ExclamationCircleOutlined} from '@ant-design/icons'
 
-/*
-let f = new Date ();
-f = setDate(f.getDate()+15);
-
-const expira = new Date() + 15 * 86400000; // memo
-
-*/
-
 const comprobarPrestamo = (x) => 
     Math.floor((new Date() - new Date(x)) / 86400000) > 15;
     

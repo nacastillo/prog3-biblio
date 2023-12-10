@@ -28,6 +28,31 @@ const initialGenres = [
         _id: new ObjectId('000000000000000000000005'),
         cod: 5,
         desc: "Romance",
+    },
+    {
+        _id: new ObjectId('000000000000000000000006'),
+        cod: 6,
+        desc: "Acción",
+    },
+    {
+        _id: new ObjectId('000000000000000000000007'),
+        cod: 7,
+        desc: "Aventura",
+    },
+    {
+        _id: new ObjectId('000000000000000000000008'),
+        cod: 8,
+        desc: "Fantasía",
+    },
+    {
+        _id: new ObjectId('000000000000000000000009'),
+        cod: 9,
+        desc: "Histórico",
+    },
+    {
+        _id: new ObjectId('000000000000000000000010'),
+        cod: 10,
+        desc: "Misterio",
     }
 ]
 

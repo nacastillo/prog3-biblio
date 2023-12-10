@@ -6,21 +6,24 @@ const { ObjectId } = mongodb
 const initialRoles = [
   {
     _id: new ObjectId('000000000000000000000000'),
+    cod: 0,
     name: 'admin',
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    ///createdAt: new Date(),
+    //updatedAt: new Date(),
   },
   {
     _id: new ObjectId('000000000000000000000001'),
+    cod: 1,
     name: 'bibliotecario',
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    //createdAt: new Date(),
+    //updatedAt: new Date(),
   },
   {
     _id: new ObjectId('000000000000000000000002'),
+    cod: 2,
     name: 'socio',
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    //createdAt: new Date(),
+    //updatedAt: new Date(),
   },
 ]
 

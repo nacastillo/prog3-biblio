@@ -1,9 +1,12 @@
 function About() {
   return (
-    <div>
-      <h1>This is the About page</h1>
-      <p></p>
-    </div>
+    <>
+      <h1>
+        Programación 3 <br></br>
+        Instituto Nacional Superior del Profesorado Tecnico<br></br>
+        Universidad Tecnologica Nacional
+      </h1>      
+    </>    
   )
 }
 

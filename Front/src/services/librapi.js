@@ -1,8 +1,15 @@
-import api2 from './api2'
+import api from './api'
 
-const lbServ = {}
+const serv = {}
 
-lbServ.getLibros = () => api2.get('/libros')
-lbServ.getPrestables = () => api2.get('/libros/prestables')
+serv.login = (e, p) => api.post('/login', { email: e, password: p })
 
-export default lbServ
+serv.getAll = (ruta) => api.get(`/${ruta}`)
+serv.crear = (ruta, objeto) => api.post(`/${ruta}`, objeto)
+serv.leer = (ruta, id) => api.get(`${ruta}/${id}`)
+serv.actualizar = (ruta, id, objeto) => api.put(`${ruta}/${id}`, objeto)
+serv.borrar = (ruta, id) => api.delete(`/${ruta}/${id}`)
+
+serv.getPrestables = () => api.get('/libros/prestables')
+
+export default serv

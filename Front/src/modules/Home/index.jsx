@@ -1,19 +1,10 @@
-import { useEffect } from 'react'
-import swService from '../../services/swapi'
-
 function Home() {
-  /** 
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await swService.getPersonById(1)
-      console.log(response)
-    }
-    fetchData()
-  }, [])
-  */
-  return <>
-          <h1>Home</h1> 
-          </>
+  
+  return (
+    <>
+      <h1>Pagina de inicio</h1> 
+    </>
+    )
 }
 
 export default Home
