@@ -8,6 +8,7 @@ router.post('/', createUserToken)
 
 async function createUserToken(req, res, next) {
     console.log(`Creating user token for ${req.body.email}`)
+    /*
   
     if (!req.body.email) {
       console.error('Missing email parameter. Sending 400 to client')
@@ -18,13 +19,13 @@ async function createUserToken(req, res, next) {
       console.error('Missing password parameter. Sending 400 to client')
       return res.status(400).end()
     }
-  
+  */
     try {
       const user = await User.findOne({ email: req.body.email }, '+password')
   
       if (!user) {
         console.error('User not found. Sending 404 to client')
-        return res.status(401).end()
+        return res.status(404).end()
       }
   
       console.log('Checking user password')
@@ -40,7 +41,8 @@ async function createUserToken(req, res, next) {
         return res.status(401).end()
       }
   
-      const response = await generateUserToken(req, user)
+      //const response = await generateUserToken(req, user)
+      const response = user;
   
       res.status(201).json(response)
     } catch (err) {

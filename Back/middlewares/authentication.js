@@ -7,56 +7,56 @@ const createError = require('http-errors')
 // const publicKey = fs.readFileSync(path.join(__dirname, `../keys/base-api-express-generator.pub`))
 
 function getToken(req, next) {
-  const TOKEN_REGEX = /^\s*Bearer\s+(\S+)/g
-  const matches = TOKEN_REGEX.exec(req.headers.authorization)
+    const TOKEN_REGEX = /^\s*Bearer\s+(\S+)/g
+    const matches = TOKEN_REGEX.exec(req.headers.authorization)
 
-  if (!matches) {
-    return next(new createError.Unauthorized())
-  }
+    if (!matches) {
+        return next(new createError.Unauthorized())
+    }
 
-  const [, token] = matches
-  return token
+    //const [, token] = matches
+    const token = matches[1];
+    return token
 }
 
 function authentication(req, res, next) {
-  if (!req.headers.authorization) {
-    console.error('Missing authorization header')
-    return next(new createError.Unauthorized())
-  }
-
-  const token = getToken(req, next)
-
-  try {
-    // Unsecure alternative
-    req.user = jwt.verify(token, 'base-api-express-generator', {
-      issuer: 'base-api-express-generator',
-    })
-
-    // Correct alternative
-    // req.user = jwt.verify(token, publicKey, {
-    //   algorithms: ['RS256'],
-    //   issuer: 'base-api-express-generator',
-    // })
-
-    if (!req.user || !req.user._id || !req.user.role) {
-      console.error('Error authenticating malformed JWT')
-      return next(new createError.Unauthorized())
+    if (!req.headers.authorization) {
+        console.error('Missing authorization header')
+        return next(new createError.Unauthorized())
     }
 
-    console.info(`User ${req.user._id} authenticated`)
+    const token = getToken(req, next)
 
-    next(null)
-  } catch (err) {
-    if (err.message === 'invalid algorithm' || err.message === 'invalid signature') {
-      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-      console.error(`Suspicious access attempt from ip=${ip} ${token}`)
+    try {
+        // Unsecure alternative
+        req.user = jwt.verify(token, 'base-api-express-generator', {
+            issuer: 'base-api-express-generator',
+        })
+
+        // Correct alternative
+        // req.user = jwt.verify(token, publicKey, {
+        //   algorithms: ['RS256'],
+        //   issuer: 'base-api-express-generator',
+        // })
+
+        if (!req.user || !req.user._id || !req.user.role) {
+            console.error('Error authenticating malformed JWT')
+            return next(new createError.Unauthorized())
+        }
+        console.info(`User ${req.user._id} authenticated`)
+        next(null)
     }
-    if (err.name === 'TokenExpiredError') {
-      console.error('Expired token, sending 401 to client')
-      return res.sendStatus(401)
+    catch (err) {
+        if (err.message === 'invalid algorithm' || err.message === 'invalid signature') {
+            const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+            console.error(`Suspicious access attempt from ip=${ip} ${token}`)
+        }
+        if (err.name === 'TokenExpiredError') {
+            console.error('Expired token, sending 401 to client')
+            return res.sendStatus(401)
+        }
+        return next(new createError.Unauthorized(err))
     }
-    return next(new createError.Unauthorized(err))
-  }
 }
 
 module.exports = authentication

@@ -10,7 +10,7 @@
     "migrate": "migrate-mongo",
     "migrate-dev": "set NODE_ENV=production && migrate-mongo"
   },
-  "dependencies": {
+  "dependencies": {    
     "bcrypt": "^5.1.1",
     "cookie-parser": "~1.4.4",
     "cors": "^2.8.5",

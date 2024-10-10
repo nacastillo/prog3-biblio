@@ -14,7 +14,7 @@ import { Layout, Menu, theme } from 'antd'
 
 const { Header, Content, Footer, Sider } = Layout
 
-function getItem(label, key, icon, children) {
+function getItem(label, key, icon, children) { // getItem devuelve un objeto para pasarlo por "items"
     return {
         key,
         icon,
@@ -22,6 +22,23 @@ function getItem(label, key, icon, children) {
         label,
     }
 }
+
+const containerStyle = {
+    display: "grid",    
+};
+
+const headerStyle = {
+    textAlign: "center"
+};
+
+const mainStyle = {
+    textAlign: "center",    
+};
+
+const footerStyle = {    
+    textAlign: "center",
+    height: "10%",    
+};
 
 const items = [
     getItem(<Link to="/login"> Iniciar sesión </Link>, '1', <LoginOutlined />),
@@ -71,11 +88,11 @@ const App = () => {
     const {
         token: { colorBgContainer },
     } = theme.useToken()
-
+    
     return (
         <Layout style={{ minHeight: '100vh', }}>
             <Sider style={{ width: 300, height: '100vh', position: 'fixed' }}>
-                <Menu theme="dark" defaultSelectedKeys={['1']} openKeys={openKeys}
+                <Menu style = {{width: 200}}theme="dark" defaultSelectedKeys={['1']} openKeys={openKeys}
                     onOpenChange={onOpenChange} mode="inline" items={items}
                 />
             </Sider>
@@ -114,11 +131,94 @@ const App = () => {
                         textAlign: 'center',
                     }}
                 >
-                    Ant Design ©2023 Created by Ant UED
+                    Ant Design ©{new Date().getFullYear()} Created by Ant UED
                 </Footer>
             </Layout>
         </Layout>
     )
+    
+    /*
+    return (
+        <div style = {containerStyle}>
+            <header style = {headerStyle}>
+                <h1>Biblioteca General José Justo de Urquiza</h1>
+            </header>
+            <nav>
+                <ul style = {{display: "flex", flexDirection: "row"}}>
+                    <li>Inicio</li>
+                    <li>Libros</li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                </ul>
+            </nav>
+            <main style = {mainStyle}>
+                <div style = {{height: "70%"}} > 
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />
+                    Cuerpo <br />                    
+                </div>                
+            </main>
+            <footer style = {footerStyle}>
+                Ant Design ©{new Date().getFullYear()} Created by Ant UED
+            </footer>
+        </div>
+    )
+    */ 
 }
 
 export default App
