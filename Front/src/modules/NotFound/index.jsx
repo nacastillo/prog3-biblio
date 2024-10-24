@@ -3,9 +3,8 @@ import { Button, Result } from 'antd'
 const App = () => (
   <Result
     status="404"
-    title="404"
-    subTitle="Pagina no encontrada."
-    extra={<Button type="primary">Back Home</Button>}
+    title="Página no encontrada"    
+    extra={<Button type="primary" href ="/">Volver a Home</Button>}
   />
 )
 export default App

@@ -3,12 +3,6 @@ import { useContext } from "react";
 import { useNavigate } from "react-router-dom"
 import { Button, Checkbox, Form, Input, message } from 'antd';
 import { AuthContext } from "../../components/AuthContext";
-import lbServ from '../../services/librapi'
-
-async function loguear (v) {
-    console.log(v);
-    lbServ.login(v.email,v.pwd);
-}
 
 function Login() {
 
@@ -18,15 +12,9 @@ function Login() {
 
     async function handleSubmit (v) {
         try {
-            await login(v.email, v.pwd);
+            await login(v.usr, v.pwd);
             formLogin.resetFields();
-            nav("/");
-            /*
-            console.log("v es:");
-            console.log(v);
-            const resp = await lbServ.login(v.email,v.pwd);
-            console.log(resp);
-            */
+            nav("/");            
         }
         catch (err) {
             console.log(err);
@@ -35,7 +23,7 @@ function Login() {
     };    
 
     return (
-        <>
+        <div>
             <h1>Iniciar sesión</h1>
             <Form 
                 form = {formLogin}
@@ -47,8 +35,8 @@ function Login() {
                 autoComplete="off"
                 >
                 <Form.Item 
-                label="Correo" 
-                name="email" 
+                label="Usuario" 
+                name="usr" 
                 rules={[{
                     required: true, 
                     message: 'Ingrese usuario',
@@ -76,7 +64,7 @@ function Login() {
                     </Button>
                 </Form.Item>
             </Form>
-        </>
+        </div>
     )
 }
 export default Login;

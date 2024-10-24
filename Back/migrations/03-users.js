@@ -6,8 +6,9 @@ const { ObjectId } = mongodb
 const initialUsers = [
   {
     _id: new ObjectId('000000000000000000000000'),
+    usr: "admin",
     email: 'admin@baseapinode.com',
-    password: '$2a$10$J3Qa3YiZTxXBX7NsSXMWmeVfrnsK7GXyCQM8sQ0VpSgvULxA/DOgO', // Password1
+    pwd: '$2a$10$J3Qa3YiZTxXBX7NsSXMWmeVfrnsK7GXyCQM8sQ0VpSgvULxA/DOgO', // Password1
     role: new ObjectId('000000000000000000000000'), // Admin
     fullName: 'BaseApi, Admin' ,
     // firstName: 'Admin',
@@ -22,8 +23,9 @@ const initialUsers = [
   },
   {
     _id: new ObjectId('000000000000000000000001'),
+    usr: "nicolas",
     email: 'nicastillo@baseapinode.com',
-    password: '$2a$10$J3Qa3YiZTxXBX7NsSXMWmeVfrnsK7GXyCQM8sQ0VpSgvULxA/DOgO', // Password1
+    pwd: '$2a$10$J3Qa3YiZTxXBX7NsSXMWmeVfrnsK7GXyCQM8sQ0VpSgvULxA/DOgO', // Password1
     role: new ObjectId('000000000000000000000001'), // Bibliotecario
     fullName: 'Castillo, Nicolas',
     // firstName: 'Nicolas',
@@ -38,8 +40,9 @@ const initialUsers = [
   },  
   {
     _id: new ObjectId('000000000000000000000002'),
+    usr: "clopez",
     email: 'clopez@baseapinode.com',
-    password: '$2a$10$J3Qa3YiZTxXBX7NsSXMWmeVfrnsK7GXyCQM8sQ0VpSgvULxA/DOgO', // Password1
+    pwd: '$2a$10$J3Qa3YiZTxXBX7NsSXMWmeVfrnsK7GXyCQM8sQ0VpSgvULxA/DOgO', // Password1
     role: new ObjectId('000000000000000000000002'), // Socio
     fullName: 'Lopez, Carlos',
     // firstName: 'Carlos',

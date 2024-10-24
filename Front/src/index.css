@@ -1,48 +1,76 @@
 html,
 body,
 #root {
-  height: 100%;
-  width: 100%;
-  background: #fff;
+    height: 100%;
+    width: 100%;    
 }
 
+body,
 * {
-  font-family: 
-    'Encode Sans'
+    font-family: "Montserrat", sans-serif !important
 }
-  /*
-     
-  'Roboto',
-  -apple-system,
-  BlinkMacSystemFont,
-  'Segoe UI',
-  'Oxygen',
-  'Ubuntu',
-  'Cantarell',
-  'Fira Sans',
-  'Droid Sans',
-  'Helvetica Neue',
-  sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  */
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+    font-family: "Lora", serif !important
+}
 
 body {
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
-a {
-  color: inherit; /* blue colors for links too */
-  text-decoration: inherit; /* no underline */
+.botonLink {
+    background-color: #FFFFFF;
+    color: #000000;
+    /* margin-inline: 5px; */
+    border: 1px solid #d9d9d9;
+    padding-block: 7px;
+    padding-inline: 15px;
+    border-radius: 5px;
 }
 
-a:hover {
-  color: inherit; /* blue colors for links too */
-  text-decoration: underline; /* no underline */
-  cursor: pointer;
+.header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 64px;    /* Puedes ajustar según la altura del Header */
+    z-index: 1000;
+    background-color: #232D4F;
 }
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 64px;    /* Ajusta según la altura del Footer */
+    z-index: 1000;
+    background-color: #232D4F;
+    text-align: center;
+}
+
+.content {
+    margin-top: 64px;    /* Espacio para el Header */
+    margin-bottom: 64px;    /* Espacio para el Footer */
+    overflow-y: auto;
+    height: calc(100vh - 128px);    /* Altura total menos la del Header y Footer */
+    padding: 16px;
+    background-color: #FAFAFA ;    /* Fondo para contrastar */
+}
+
+/*
+span.ant-menu-title-content a.test,
+span.ant-menu-title-content a.test:hover,
+span.ant-menu-title-content a.test::before,
+span.ant-menu-title-content a.test::after
+{
+    color: red
+}
+*/

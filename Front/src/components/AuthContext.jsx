@@ -1,5 +1,4 @@
 import {createContext, useEffect, useState} from "react";
-//import jwt_decode from "jwt-decode";
 import {jwtDecode} from "jwt-decode";
 import serv from "../services/librapi";
 
@@ -21,11 +20,11 @@ export const AuthProvider = ({ children }) => {
         try {
             const token = await serv.login(u,p);
             localStorage.setItem("nicastillo.prog3", token);
-            setAutenticado(true);
+            setAutenticado(true);            
         }
         catch (err) {
-            console.error(err);   
-            //console.log(`Error ${err.response.status}: ${err.message}`)
+            console.error(err);
+            setAutenticado(false);
             throw new Error(`Error ${err.response.status}: ${err.message}`);
         }
     }
@@ -37,21 +36,21 @@ export const AuthProvider = ({ children }) => {
 
     function getFullName () {
         if (autenticado) {
-            const decoded = jwt_decode(localStorage.getItem("nicastillo.prog3"));
+            const decoded = jwtDecode(localStorage.getItem("nicastillo.prog3"));
             return decoded.fullName;
         }
     }
 
     function getPrestamos () {
         if (autenticado) {
-            const decoded = jwt_decode(localStorage.getItem("nicastillo.prog3"));
+            const decoded = jwtDecode(localStorage.getItem("nicastillo.prog3"));
             return decoded.prestamos;
         }        
     }
 
     function getRol () {
         if (autenticado) {
-            const decoded = jwt_decode(localStorage.getItem("nicastillo.prog3"));
+            const decoded = jwtDecode(localStorage.getItem("nicastillo.prog3"));
             return decoded.rol;
         }
         else {
@@ -68,7 +67,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     function esAdmin () {
-        return getRol() === "Administrador";        
+        return getRol() === "Administrador" || getRol() === "admin";
     }
 
     useEffect ( () => {
@@ -86,6 +85,7 @@ export const AuthProvider = ({ children }) => {
             logout,
             getFullName,
             getPrestamos,
+            getRol,
             esSocio,
             esBiblio,
             esAdmin}}

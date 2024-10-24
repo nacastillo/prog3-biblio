@@ -6,9 +6,10 @@ const Schema = mongoose.Schema
 const { ObjectId } = Schema.Types
 const emailValidator = validate({ validator: 'isEmail' })
 
-const userSchema = new Schema({
+const userSchema = new Schema({    
+    usr: {type: String, required: true, unique: true, lowercase: true, trim: true },
+    pwd: { type: String,   required: true, select: false },    
     email:    { type: String,   required: true, unique: true, lowercase: true, trim: true, validate: emailValidator },
-    password: { type: String,   required: true, select: false },
     role:     { type: ObjectId, required: true, ref: 'Role',  },
     fullName: { type: String,   required: true, trim: true },    
     phone:    { type: String,   trim: true },
@@ -21,7 +22,7 @@ userSchema.method('checkPassword', async function checkPassword(potentialPasswor
     if (!potentialPassword) {
         return Promise.reject(new Error('Password is required'))
     }
-    const isMatch = await bcrypt.compare(potentialPassword, this.password)
+    const isMatch = await bcrypt.compare(potentialPassword, this.pwd)
 
     return { isOk: isMatch, isLocked: !this.isActive }
 })

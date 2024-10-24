@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react'
-import { Button, Checkbox, DatePicker, Form, Input, message, Select, Space, Spin, Table } from 'antd'
+import { useContext, useState, useEffect } from 'react'
+import { Link } from "react-router-dom";
+import { Row, Col, Button, Checkbox, DatePicker, Form, Input, message, Select, Space, Spin, Table } from 'antd'
 import serv from '../../services/librapi'
+import { AuthContext } from "../../components/AuthContext";
+import dayjs from "dayjs";
 
 function Prestamos() {
     const [cargando, setCargando] = useState(false);
@@ -13,6 +16,8 @@ function Prestamos() {
             return '¿Confirma que desea eliminar el prestamo?'
         }
     }
+
+    const {esSocio, esAdmin, esBiblio} = useContext(AuthContext);
 
     const handleBorrar = async (r) => {
         if (confirm(msjConfirm(r))) {
@@ -73,22 +78,43 @@ function Prestamos() {
     }, [])
 
     return (
-        <>
-            {cargando ? (
-                <Spin size="large" />
-            ) : (
-                <>
-                    {prestamos.length == 0 ?
-                        (<h1>No hay prestamos</h1>) :
-                        (<>
-                            <h1>Listado de todos los préstamos</h1>
+        <div>
+            <Row>
+                <Col>
+                    <h1>Préstamos</h1>
+                </Col>
+            </Row>
+            {(esBiblio() || esAdmin()) &&
+                <Row>
+                    <Col>
+                        <Link to ="../prestamos/nuevo" className= "botonLink">
+                            Nuevo
+                        </Link>                                        
+                        <Link to = "../prestamos/buscar" className= "botonLink">
+                            Buscar
+                        </Link>
+                    </Col>
+                </Row>
+            }
+            <Row>
+                <Col>
+                    {cargando ? (
+                        <Spin size="large" />
+                    ) : (
+                        <>
+                            {prestamos.length == 0 ?
+                                (<h1>No hay prestamos</h1>) :
+                                (<>
+                                    <h1>Listado de todos los préstamos</h1>
 
-                            <Table dataSource={prestamos} columns={columnas} />
-                        </>)
-                    }
-                </>
-            )}
-        </>
+                                    <Table dataSource={prestamos} columns={columnas} />
+                                </>)
+                            }
+                        </>
+                    )}
+                </Col>
+            </Row>
+        </div>
     )
 }
 
@@ -150,12 +176,20 @@ function AltaPrestamo() {
         console.log(date, dateString);
     };
 
+    function fechaa () {
+        const hoy = new Date();
+        const hoy2 = new Date(""+hoy.getFullYear(),""+ (hoy.getMonth()+1),""+ hoy.getDate());
+        //console.log(hoy.toISOString())
+        //console.log(hoy2);        
+        return hoy2;
+    }
+
     useEffect(() => {
         pegar();
     }, [])
 
     return (
-        <>
+        <div>
             <h1>Nuevo prestamo</h1>
             <Form
                 labelCol={{ span: 8 }}
@@ -218,10 +252,16 @@ function AltaPrestamo() {
                 </Form.Item>
                 <Form.Item name="fechaFin" label="Fecha fin">
                     <Space direction="vertical">
-                        <DatePicker onChange={onChange} placeholder="Ingrese fecha" />
+                        <DatePicker onChange={onChange} 
+                        placeholder="Ingrese fecha"
+                        minDate = {dayjs()}
+                        />
                     </Space>
                 </Form.Item>
                 <Form.Item wrapperCol={{ offset: 8, span: 16, }}>
+                    <Link to = "../prestamos" className = "botonLink">
+                        Volver
+                    </Link>
                     <Button type="primary" htmlType="submit">
                         Enviar
                     </Button>
@@ -231,7 +271,7 @@ function AltaPrestamo() {
                 </Form.Item>
             </Form>
 
-        </>
+        </div>
     )
 }
 
@@ -310,7 +350,7 @@ function BajaPrestamo() {
     }, [])
 
     return (
-        <>
+        <div>
             <h1>Buscar préstamo</h1>
             <Form
                 labelCol={{ span: 8 }}
@@ -337,6 +377,9 @@ function BajaPrestamo() {
                     </Select>
                 </Form.Item>
                 <Form.Item wrapperCol={{ offset: 8, span: 16, }}>
+                    <Link to = "../prestamos" className = "botonLink">
+                        Volver
+                    </Link>
                     <Button type="primary" htmlType="button" onClick={() => { setModif(!modif) }}>
                         Modificar
                     </Button>
@@ -404,7 +447,7 @@ function BajaPrestamo() {
                     </Form.Item>
                 </Form>
                 )}
-        </>
+        </div>
     )
 }
 

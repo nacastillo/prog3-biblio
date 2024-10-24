@@ -1,36 +1,25 @@
-#!/usr/bin/env node
-/* eslint-disable no-undef */
+if (process.env.NODE_ENV) {    
+    require("dotenv").config({path: `.env.${process.env.NODE_ENV}`});
+}
 
-// Module dependencies.
 const app = require('../app')
 const debug = require('debug')('base-api-express-generator:server')
 const http = require('http')
 const figlet = require('figlet')
 const mongoose = require('mongoose')
 const pkg = require('../package.json')
-
-const env_path = process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : '.env'
-require('dotenv').config({ path: env_path })
-
-// Get port from environment and store in Express.
 const port = process.env.PORT || 3000
 app.set('port', port)
-
-// Create HTTP server.
 const server = http.createServer(app)
-
 const db_url = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/'
-const db_name = process.env.MONGO_DB || 'proyectov2'
-
-// MongoDB database initialization
-initDatabase()
-    .then(() => console.log(`Conexión a la base de datos exitosa.\n(${db_url + db_name})`))
-    .catch((err) => console.log(err))
-
-async function initDatabase() {
-    await mongoose.connect(db_url + db_name)
+const db_name = process.env.MONGO_DB || 'prueba'
+try {
+    initDatabase ();    
 }
-
+catch (err) {
+    console.error(err)
+    process.exit(1); // Salir si no se puede conectar
+};
 // Listen on provided port, on all network interfaces.
 server.listen(port, printTitle())
 server.on('error', onError)
@@ -41,7 +30,6 @@ function onError(error) {
     if (error.syscall !== 'listen') {
         throw error
     }
-
     const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port
 
     // handle specific listen errors with friendly messages
@@ -67,14 +55,22 @@ function onListening() {
 }
 
 // Prints the app title and more specifications
-function printTitle() {
-    process.stdout.write('\n')
-    process.stdout.write(`${figlet.textSync(`biblioteca`, { font: 'Ogre' })}\n`)
-    process.stdout.write('\n')
-    process.stdout.write(
-        `Version: ${pkg.version}, Environment: ${process.env.NODE_ENV || 'default'}\n`,
-    )
-    if (process.env !== 'production') {
-        process.stdout.write(`Listening on port ${port}\n`)
-    }
+function printTitle() {    
+    process.stdout.write(`\n${figlet.textSync(`biblioteca`, { font: 'Ogre' })}`);
+    process.stdout.write(`\n${figlet.textSync(process.env.NODE_ENV || "no env", { font: 'Ogre' })}\n`);
+    //process.stdout.write(`\nVersion: ${pkg.version}\nListening on port ${port}\n`,);
+    process.stdout.write(`\nPuerto del backend: ${port}\n`);
 }
+
+async function initDatabase() {
+    await mongoose.connect(db_url + db_name);
+    console.log(`Conexión a la base de datos exitosa.\n(${db_url + db_name})`);
+}
+
+/*
+initDatabase()
+    .then(() => {
+        console.log(`Conexión a la base de datos exitosa.\n(${db_url + db_name})`);        
+    })
+    .catch((err) => console.log(err))
+*/

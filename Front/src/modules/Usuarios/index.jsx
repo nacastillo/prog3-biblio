@@ -1,14 +1,20 @@
-import { useState, useEffect } from 'react'
-import { Button, DatePicker, Form, Input, message, Space, Select, Spin, Table } from 'antd'
+import {useParams, Link} from "react-router-dom"
+import { useContext, useState, useEffect } from 'react'
+import { Row, Col, Button, DatePicker, Form, Input, Modal, message, Space, Select, Spin, Table } from 'antd'
 import serv from '../../services/librapi'
-
-// implementar acá las props
+import { AuthContext } from "../../components/AuthContext"
+import dayjs from "dayjs"
 
 const columnas = [
     {
         title: 'Número de DNI',
         dataIndex: 'dni',
         key: 'dni',
+    },
+    {
+        title: "Usuario",
+        dataIndex: "usr",
+        key: "usr"
     },
     {
         title: 'Nombre completo',
@@ -49,6 +55,7 @@ const columnas = [
 function Usuarios(props) {
     const [cargando, setCargando] = useState(false);
     const [usuarios, setUsuarios] = useState([]);
+    const {esBiblio, esAdmin} = useContext(AuthContext);
 
     const pegar = async () => {
         setCargando(true)
@@ -62,25 +69,53 @@ function Usuarios(props) {
         pegar();
     }, [])
 
-    return (<>
-        {cargando ? (
-            <Spin tip="Cargando listado..." size="large">
-                <div className="content" />
-            </Spin>
-        ) : (
-            <>
-                {usuarios.length == 0 ?
-                    (<h1>No hay usuarios</h1>) :
-                    (<>
-                        <h1>Listado de todos los usuarios</h1>
-                        <Table dataSource={usuarios} columns={columnas} />
-                        <h3>Total usuarios: {usuarios.length}</h3>
-                    </>)
+    return (
+        <div>
+            <Row>
+                <Col>
+                    <h1>Usuarios</h1>
+                </Col>
+            </Row>
+            {(esBiblio() || esAdmin()) &&
+                <Row>
+                    <Col>
+                        <Link to ="../usuarios/nuevo" className= "botonLink">
+                            Nuevo
+                        </Link>                                        
+                        <Link to = "../usuarios/buscar" className= "botonLink">
+                            Buscar
+                        </Link>
+                    </Col>
+                </Row>
+            }
+            <Row>
+                <Col>
+                {cargando ? (
+                    <Spin tip="Cargando listado..." size="large" />
+                ) 
+                : 
+                (
+                    <>
+                        {usuarios.length == 0 ?
+                            (<h2>No hay usuarios</h2>) :
+                            (<>
+                                <h2>Listado de todos los usuarios</h2>
+                                <Table dataSource={usuarios} columns={columnas}
+                                    pagination = {{
+                                        align: "center",
+                                        size: "small",
+                                        position: ["topLeft"],
+                                        showTotal: () => <b>Total de libros: {usuarios.length}</b>
+                                }}
+                                />
+                            </>)
+                        }
+                    </>
+                )
                 }
-            </>
-        )
-        }
-    </>
+            </Col>
+        </Row>
+    </div>
     )
 }
 
@@ -127,118 +162,139 @@ function AltaUsuario() {
     }, [])
 
     return (
-        <>
-            <h1>Nuevo usuario</h1>
-            <Form
-                labelCol={{ span: 8 }}
-                wrapperCol={{ span: 16 }}
-                form={form}
-                name="control-hooks"
-                onFinish={onFinish}
-                style={{
-                    maxWidth: 600,
-                }}
-            >
-                <Form.Item
-                    name="dni"
-                    label="Número de DNI:"
-                    style={{ width: 400 }}
-                    rules={[{ required: true }]}
-                >
-                    <Input
-                        placeholder="Ingrese DNI"
-                        style={{ width: 200 }}
-                    />
-                </Form.Item>
-                <Form.Item
-                    name="apellido"
-                    label="Apellido"
-                    rules={[{ required: true, },]}
-                >
-                    <Input
-                        placeholder="Ingrese apellido(s)"
-                        style={{ width: 200 }}
-                    />
-                </Form.Item>
-                <Form.Item
-                    name="nombre"
-                    label="Nombre"
-                    rules={[
-                        {
-                            required: true,
-                        },
-                    ]}
-                >
-                    <Input
-                        placeholder="Ingrese nombre(s)"
-                        style={{ width: 200 }}
-                    />
-                </Form.Item>
-                <Form.Item
-                    name="phone"
-                    label="Teléfono"
-                >
-                    <Input
-                        placeholder="Ingrese teléfono"
-                        style={{ width: 200 }}
-                    />
-                </Form.Item>
-                <Form.Item
-                    name="email"
-                    label="Correo"
-                    rules={[{ required: true }]}
-                >
-                    <Input
-                        placeholder="Ingrese correo"
-                        style={{ width: 200 }}
-                    />
-                </Form.Item>
-                <Form.Item
-                    name="password"
-                    label="Contraseña"
-                >
-                    <Input.Password />
-                </Form.Item>
-                <Form.Item
-                    name="role"
-                    label="Rol"
-                    rules={[
-                        {
-                            required: true,
-                        },
-                    ]}
-                >
-                    <Select
-                        showSearch
-                        style={{ width: 200 }}
-                        placeholder="Ingrese rol"
-                        optionFilterProp="children"
-                        filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
-                        filterSort={(optionA, optionB) => (optionA?.cod ?? '').toLowerCase().localeCompare((optionB?.cod ?? '').toLowerCase())}
-                    >    {roles.map(g => (
-                        <Option key={g._id}>
-                            {g.name}
+        <div>
+            <Row>
+                <Col span = {24}>            
+                    <h1>Nuevo usuario</h1>
+                    <Form
+                        labelCol={{ span: 3 }}
+                        wrapperCol={{ span: 5 }}
+                        form={form}
+                        name="control-hooks"
+                        onFinish={onFinish}
+                        // layout = "vertical"
+                        // style={{
+                        //     maxWidth: 600,
+                        // }}
+                    >
+                        <Form.Item
+                            name="dni"
+                            label="Número de DNI:"
+                            // style={{ width: 400 }}
+                            rules={[{ required: true }]}
+                        >
+                            <Input
+                                placeholder="Ingrese DNI"
+                                // style={{ width: 200 }}
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            name="usr"
+                            label="Nombre de usuario"
+                            rules={[{ required: true, },]}
+                        >
+                            <Input
+                                placeholder="Ingrese nombre de usuario"
+                                // style={{ width: 200 }}
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            name="apellido"
+                            label="Apellido"
+                            rules={[{ required: true, },]}
+                        >
+                            <Input
+                                placeholder="Ingrese apellido(s)"
+                                // style={{ width: 200 }}
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            name="nombre"
+                            label="Nombre"
+                            rules={[
+                                {
+                                    required: true,
+                                },
+                            ]}
+                        >
+                            <Input
+                                placeholder="Ingrese nombre(s)"
+                                // style={{ width: 200 }}
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            name="phone"
+                            label="Teléfono"
+                        >
+                            <Input
+                                placeholder="Ingrese teléfono"
+                                // style={{ width: 200 }}
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            name="email"
+                            label="Correo"
+                            rules={[{ required: true }]}
+                        >
+                            <Input
+                                placeholder="Ingrese correo"
+                                // style={{ width: 200 }}
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            name="pwd"
+                            label="Contraseña"
+                        >
+                            <Input.Password />
+                        </Form.Item>
+                        <Form.Item
+                            name="role"
+                            label="Rol"
+                            rules={[
+                                {
+                                    required: true,
+                                },
+                            ]}
+                        >
+                            <Select
+                                showSearch
+                                // style={{ width: 200 }}
+                                placeholder="Ingrese rol"
+                                optionFilterProp="children"
+                                filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                                filterSort={(optionA, optionB) => (optionA?.cod ?? '').toLowerCase().localeCompare((optionB?.cod ?? '').toLowerCase())}
+                            >    {roles.map(g => (
+                                <Option key={g._id}>
+                                    {g.name}
 
-                        </Option>
-                    ))}
-                    </Select>
+                                </Option>
+                            ))}
+                            </Select>
 
-                </Form.Item>
-                <Form.Item name="bornDate" label="Fecha de nac.">
-                    <Space direction="vertical">
-                        <DatePicker onChange={handleFecha} placeholder="Ingrese fecha" />
-                    </Space>
-                </Form.Item>
-                <Form.Item wrapperCol={{ offset: 8, span: 16, }}>
-                    <Button type="primary" htmlType="submit">
-                        Enviar
-                    </Button>
-                    <Button htmlType="button" onClick={() => form.resetFields()}>
-                        Borrar
-                    </Button>
-                </Form.Item>
-            </Form>
-        </>
+                        </Form.Item>
+                        <Form.Item name="bornDate" label="Fecha de nac.">
+                            <Input type = "date">
+                            </Input>
+                            <DatePicker onChange={handleFecha} 
+                                placeholder="Ingrese fecha"
+                                maxDate = {dayjs()}
+                            />                            
+                        </Form.Item>
+                        <Form.Item wrapperCol={{ offset: 3, span: 5, }}>
+                            <Link to = "../usuarios" className = "botonLink">
+                                Volver
+                            </Link>
+                            <Button type="primary" htmlType="submit">
+                                Enviar
+                            </Button>
+                            <Button htmlType="button" onClick={() => form.resetFields()}>
+                                Borrar
+                            </Button>                            
+                        </Form.Item>
+                    </Form>
+                </Col>
+            </Row>
+        </div>
     )
 }
 
@@ -292,16 +348,30 @@ function BajaUsuario() {
     const [form1] = Form.useForm();
     const [form2] = Form.useForm();
 
-    const onFinish = async (v) => {
-        const usuario = JSON.parse(v.usuario)
-        if (confirm(`${usuario._id}\n¿Confirma que desea eliminar el usuario seleccionado?\nDNI: ${usuario.dni}\nNombre completo: ${usuario.fullName}`)) {
+
+    async function handleBorra () {
+    //const handleBorra = async (v) => {
+        // const usuario = JSON.parse(v.usuario)
+        // if (confirm(`${usuario._id}\n¿Confirma que desea eliminar el usuario seleccionado?\nDNI: ${usuario.dni}\nNombre completo: ${usuario.fullName}`)) {
+        //     try {
+        //         await serv.borrar('usuarios', usuario._id)
+        //         message.success('Usuario borrado exitosamente')
+        //         form1.resetFields();
+        //         form2.resetFields();
+        //         pegar();
+        //     }
+        //     catch (err) {
+        //         message.error(err)
+        //     }
+        // }
+        if (confirm(`${usuarioM._id}\n¿Confirma que desea eliminar el usuario seleccionado?\nDNI: ${usuarioM.dni}\nNombre completo: ${usuarioM.fullName}`)) {
             try {
-                await serv.borrar('usuarios', usuario._id)
+                await serv.borrar('usuarios', usuarioM._id)
                 message.success('Usuario borrado exitosamente')
                 form1.resetFields();
                 form2.resetFields();
                 pegar();
-            }
+                }
             catch (err) {
                 message.error(err)
             }
@@ -331,28 +401,31 @@ function BajaUsuario() {
         console.log(date, dateString);
     };
 
-    const guardarID = async (v) => {
+    function guardarID (v) {
+    //const guardarID = v => {
         const u = JSON.parse(v)
-        setUsuarioM(u._id)
+        setUsuarioM(u)
+        console.log(usuarioM);
         setModif(false)
     }
 
     return (
-        <>
+        <div>
             <h1>Buscar usuario</h1>
             <Form
                 labelCol={{ span: 8 }}
                 wrapperCol={{ span: 16 }}
                 form={form1}
                 name="formBajaUsuario"
-                onFinish={onFinish}
+                onFinish={handleBorra}
                 style={{ maxWidth: 600, }}
             >
                 <Form.Item name="usuario" label="Usuario" rules={[{ required: true, },]}>
                     <Select
                         showSearch
                         style={{ width: 200 }}
-                        onChange={guardarID}
+                        onSelect={guardarID}
+                        // onChange={guardarID}
                         placeholder="Ingrese usuario"
                         optionFilterProp="children"
                         filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
@@ -365,6 +438,9 @@ function BajaUsuario() {
                     </Select>
                 </Form.Item>
                 <Form.Item wrapperCol={{ offset: 8, span: 16, }}>
+                    <Link to = "../usuarios" className = "botonLink">
+                        Volver
+                    </Link>
                     <Button type="primary" htmlType="button" onClick={() => { setModif(!modif) }}>
                         Modificar
                     </Button>
@@ -394,7 +470,7 @@ function BajaUsuario() {
                     <Form.Item name="email" label="Correo" >
                         <Input placeholder="Ingrese correo" style={{ width: 200 }} />
                     </Form.Item>
-                    <Form.Item name="password" label="Contraseña" >
+                    <Form.Item name="pwd" label="Contraseña" >
                         <Input.Password />
                     </Form.Item>
                     <Form.Item name="role" label="Rol" >
@@ -428,7 +504,7 @@ function BajaUsuario() {
                     </Form.Item>
                 </Form>
                 )}
-        </>
+        </div>
     )
 }
 

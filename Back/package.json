@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "dev": "set NODE_ENV=production && nodemon ./bin/www ",
+    "dev": "set NODE_ENV=development&& nodemon .bin/www",
+    "prod": "set NODE_ENV=production&& nodemon .bin/www",
     "format": "prettier --write '**/*.{js,json,md}'",
     "lint": "eslint . --ext .js",
-    "migrate": "migrate-mongo",
-    "migrate-dev": "set NODE_ENV=production && migrate-mongo"
+    "migrate":"migrate-mongo",
+    "migrate-dev": "set NODE_ENV=development&& migrate-mongo",
+    "migrate-prod": "set NODE_ENV=production&& migrate-mongo"
   },
   "dependencies": {    
     "bcrypt": "^5.1.1",

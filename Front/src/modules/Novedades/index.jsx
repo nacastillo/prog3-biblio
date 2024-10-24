@@ -43,7 +43,7 @@ const datos2 = [
     crearNovedad2("Novedad 5", "Cuerpo de la novedad 5")
 ]
 
-function Home () {
+function Novedades () {
     const [novedades, setNovedades] = useState([]);
 
     // despues agregarle async
@@ -72,7 +72,8 @@ function Home () {
                     <Carousel 
                         style = {{backgroundColor: "#364D79", height: "700px"}}
                         autoplay
-                        autoplaySpeed={3000}
+                        autoplaySpeed={3000} 
+                        arrows
                     >                        
                     {
                         datos2.map(
@@ -91,4 +92,4 @@ function Home () {
     )
 }
 
-export default Home
+export default Novedades

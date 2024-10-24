@@ -17,7 +17,7 @@ router.delete('/:id', borrarRol)
 async function getAllRoles(req, res, next) {
     try {
         const roles = await Role.find({});
-        res.send(roles)
+        return res.send(roles);        
     }
     catch (err) {
         next(err)
@@ -29,34 +29,30 @@ async function crearRol(req, res, next) {
     const rol = req.body
     try {
         const rolN = await Role.create({ ...rol })
-        res.send(rolN)
+        return res.send(rolN);
     }
     catch (err) {
-        next(err)
+        return next(err)
     }
 }
 
-async function leerRol(req, res, next) {
-    console.log('consultar rol con cod: ', req.params.id)
-    if (!req.params.id) {
-        res.status(404).send('No hay COD')
-    }
+async function leerRol(req, res, next) {    
     try {
         const rol = await Role.findOne({ cod: req.params.id })
-        if (!rol || rol.length == 0) {
-            res.status(404).send('Rol no encontrado')
+        if (!rol) {
+            return res.status(404).send('Rol no encontrado')
         }
-        res.send(rol)
+        return res.send(rol)
     }
     catch (err) {
-        next(err)
+        return next(err)
     }
 
 }
 
 async function actualizarRol(req, res, next) {
     if (!req.params.id) {
-        res.status(404).send('No hay _id')
+        return res.status(500).send('No hay _id')
     }
     try {
         const rolA = await Role.findById(req.params.id)
@@ -70,43 +66,26 @@ async function actualizarRol(req, res, next) {
             req.body.name = rolA.name
         }
         await rolA.updateOne(req.body)
-        res.send(rolA)
-    }
-    catch (err) {
-        next(err)
-    }
-}
-
-async function borrarRol(req, res, next) {    
-    if (!req.params.id) {
-        return res.status(404).send('No hay id')
-    }
-    try {
-        const rol = await Role.findById(req.params.id)
-        if (!rol) {
-            return res.status(404).send('Rol no encontrado')
-        }
-        await Role.deleteOne({ _id: rol._id })
-            return res.send(`Rol borrado: ${rol}`)
+        return res.send(rolA)
     }
     catch (err) {
         return next(err)
     }
 }
 
-async function getRolById(req, res, next) {
-    if (!req.params.id) {
-        res.status(500).send('ID param no definido')
-    }
+async function borrarRol(req, res, next) {
     try {
-        const rol = await Role.findById(req.params.id);
-        if (!rol || rol.length == 0) {
-            res.status(404).send('Rol no encontrado')
+        const rol = await Role.findById(req.params.id)
+        if (!rol) {
+            return res.status(404).send('Rol no encontrado')
         }
-        res.send(rol)
-    } catch (err) {
-        next(err)
+        await Role.deleteOne({ _id: rol._id })
+        return res.send(rol);
+    }
+    catch (err) {
+        return next(err)
     }
 }
+
 
 module.exports = router

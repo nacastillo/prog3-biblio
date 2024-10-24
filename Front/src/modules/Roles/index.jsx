@@ -1,23 +1,26 @@
-import { useState, useEffect } from 'react'
-import { Button, Input, Form, message, Select, Spin, Table } from 'antd'
+import { useContext, useState, useEffect } from 'react'
+import {Link} from "react-router-dom";
+import { Row, Col, Button, Input, Form, Modal, message, Select, Spin, Table } from 'antd'
 import serv from '../../services/librapi'
-
-const columnas = [
-    {
-        title: 'Codigo',
-        dataIndex: 'cod',
-        key: 'cod'
-    },
-    {
-        title: 'Descripcion',
-        dataIndex: 'name',
-        key: 'name'
-    }
-]
+import { AuthContext } from '../../components/AuthContext';
 
 function Roles() {
-    const [cargando, setCargando] = useState(false);
     const [roles, setRoles] = useState([])
+    const [cargando, setCargando] = useState(false);
+    const {esBiblio, esAdmin} = useContext(AuthContext);    
+ 
+    const columnas = [
+        {
+            title: 'Codigo',
+            dataIndex: 'cod',
+            key: 'cod'
+        },
+        {
+            title: 'Descripcion',
+            dataIndex: 'name',
+            key: 'name'
+        }
+    ]
 
     async function pegar() {
         try {
@@ -27,7 +30,8 @@ function Roles() {
             setCargando(false)
         }
         catch (err) {
-            alert(err)
+            console.error(err);
+            message.error("Error al cargar listado de roles");
         }
     }
 
@@ -36,236 +40,335 @@ function Roles() {
     }, [])
 
     return (
-        <>
-            {cargando ? (
-                <Spin tip="Cargando listado..." size="large">
-                    <div className="content" />
-                </Spin>
-            ) : (
-                <>
-                    {roles.length == 0 ?
-                        (<h1>No hay roles</h1>) :
-                        (<>
-                            <h1>Listado de todos los roles</h1>
-                            <Table dataSource={roles} columns={columnas} />
-                            <h3>Total de roles: {roles.length}</h3>
-                        </>)
+        <div>
+            <Row>
+                <Col>
+                    <h1>Roles</h1>
+                </Col>
+            </Row>
+            {(esBiblio() || esAdmin()) &&
+                <Row>
+                    <Col>
+                        <Link to ="../roles/nuevo" className= "botonLink">
+                            Nuevo
+                        </Link>                
+                        <Link to = "../roles/buscar" className= "botonLink">
+                            Buscar
+                        </Link>
+                    </Col>
+                </Row>
+            }
+            <Row>
+                <Col span = {24}>
+                {cargando ? 
+                    <Spin tip="Cargando listado..." size="large" />
+                    :                     
+                    <>
+                        {roles.length == 0 ?
+                            <h2>No hay roles</h2> 
+                            :                   
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px' }}>
+                                <Table 
+                                    size = "middle"
+                                    dataSource={roles.map(x => {return {...x, key: x._id}})} 
+                                    columns={columnas}
+                                    pagination = {{
+                                        align: "center",
+                                        size: "small",
+                                        position: ["topLeft"],
+                                        showTotal: () => <b>Total de roles: {roles.length}</b>
+                                    }}
+                                />  
+                            </div>
+                        }
+                    </>
                     }
-                </>
-            )}
-        </>
+                </Col>
+            </Row>
+        </div>
     )
 }
 
-function AltaRol() {
-    const layout = {
-        labelCol: {
-            span: 8,
-        },
-        wrapperCol: {
-            span: 16,
-        },
-    };
+function AltaRol() {    
+    const [modalN, setModalN] = useState(false);
+    const [formNuevo] = Form.useForm();    
 
-    const tailLayout = {
-        wrapperCol: {
-            offset: 8,
-            span: 16,
-        },
-    };
-
-    const [form] = Form.useForm();
-    
-    const onFinish = async (v) => {
-        if (confirm(`¿Confirma el alta del rol?\nCodigo: ${v.cod}\nNombre: ${v.name}`)) {
-            try {
-                await serv.crear('roles', v)
-                message.success('Alta de rol exitosa')
-                form.resetFields();
-            }
-            catch (err) {
-                message.error(`El rol no se pudo dar de alta\n(${err})`)
-            }
+    async function handle (v) {
+        try {
+            const resp = await serv.crear("roles", v);
+            message.success(
+                <>
+                    ¡Alta exitosa! <br />
+                    ID: <b>{resp._id}</b> <br />
+                    Código: <b>{resp.cod}</b> <br />
+                    Nombre: <b>{resp.name}</b> <br />
+                </>
+            );
+            formNuevo.resetFields();
+            setModalN(false);            
+        }
+        catch (err) {
+            console.error(err);            
+            message.error(err.response.data);
         }
     }
 
     return (
-        <>
-            <h1>Nuevo rol</h1>
-            <Form
-                {...layout}
-                form={form}
-                name="formNuevoRol"
-                onFinish={onFinish}
-                style={{
-                    maxWidth: 600,
-                }}
-            >
-                <Form.Item name="cod" label="Codigo" rules={[{ required: true }]} >
-                    <Input
-                        type="number"
-                        placeholder="Ingrese código"
-                        style={{ width: 200 }}
-                    />
-                </Form.Item>
-                <Form.Item name="name" label="Nombre" rules={[{ required: true }]} >
-                    <Input
-                        placeholder="Ingrese nombre"
-                        style={{ width: 200 }}
-                    />
-                </Form.Item>
-                <Form.Item {...tailLayout}>
-                    <Button type="primary" htmlType="submit">
-                        Enviar
-                    </Button>
-                    <Button htmlType="button" onClick={() => form.resetFields()}>
-                        Borrar
-                    </Button>
-                </Form.Item>
-            </Form>
-        </>
+        <div>
+            <Row>
+                <Col span = {24}>
+                    <h1>Nuevo rol</h1>
+                    <Form                
+                        labelCol = {{span: 3}}
+                        wrapperCol = {{span: 5}}
+                        form={formNuevo}
+                        name="formNuevo"                        
+                        onFinish = {handle}
+                    >
+                        <Form.Item 
+                            name="cod" 
+                            label= {<b>Codigo</b>}
+                            rules={[{ required: true }]} >
+                            <Input type="number" 
+                            placeholder="Ingrese código"                                
+                            />
+                        </Form.Item>
+                        <Form.Item 
+                            name="name" 
+                            label= {<b>Nombre</b>}
+                            rules={[{ required: true }]} >
+                            <Input placeholder="Ingrese nombre"/>
+                        </Form.Item>
+                        <Form.Item wrapperCol = {{offset: 3, span: 5}}>
+                            <Link to = "../roles" className= "botonLink">
+                                Volver
+                            </Link>
+                            <Button type="primary" onClick = {() => setModalN(true)}>
+                                Enviar
+                            </Button>
+                            <Button htmlType="button" onClick={() => formNuevo.resetFields()}>
+                                Borrar campos
+                            </Button>
+                            <Modal                                
+                                keyboard = {false}
+                                closable = {false}
+                                maskClosable = {false}
+                                open = {modalN}
+                                title = "¿Confirmar alta?"
+                                okText = "Aceptar"
+                                cancelText = "Cancelar"
+                                onCancel = {() => setModalN(false)}
+                                onOk = {() => formNuevo.submit()}
+                            >      
+                                <b>Codigo: </b> {formNuevo.getFieldValue("cod")} <br />
+                                <b>Nombre: </b> {formNuevo.getFieldValue("name")} <br />
+                            </Modal>
+                        </Form.Item>                
+                    </Form>
+                </Col>
+            </Row>
+        </div>        
     )
 }
 
 function BajaRol() {
-    const [roles, setRoles] = useState([])
-    const [modif, setModif] = useState(false)
-    const [rolM, setRolM] = useState(null)
+    const [roles, setRoles] = useState([]);
+    const [rolM, setRolM] = useState(null);
+    const [modif, setModif] = useState(false);
+    const [modalM, setModalM] = useState(false);
+    const [modalB, setModalB] = useState(false);
+    const [formBorra] = Form.useForm();
+    const [formModif] = Form.useForm();    
 
-    const pegar = async () => {
+    async function pegar () {
         try {
             const res = await serv.getAll('roles')
             setRoles(res);
         }
         catch (err) {
-            alert(err)
+            console.error(err)
+            message.error("Problemas con el listado de roles");
         }
+    }     
+
+    function reiniciar() {
+        formBorra.resetFields();
+        formModif.resetFields();
+        setModif(false);
+        setModalB(false);
+        setModalM(false);        
+        setRolM(null);
     }
 
     useEffect(() => {
         pegar();
-    }, [])
+    }, []);   
 
-    const { Option } = Select;
-    const layout = {
-        labelCol: {
-            span: 8,
-        },
-        wrapperCol: {
-            span: 16,
-        },
-    };
-    const tailLayout = {
-        wrapperCol: {
-            offset: 8,
-            span: 16,
-        },
-    };
-
-    const [form1] = Form.useForm();
-    const [form2] = Form.useForm();
-
-    const onFinish = async (v) => {
-        const rol = JSON.parse(v.rol)
-        if (confirm(`¿Confirma que desea eliminar el siguiente rol?\n${rol.name}`)) {
-            try {
-                await serv.borrar('roles', rol._id)
-                message.success('Rol borrado exitosamente')
-                form1.resetFields();
-                form2.resetFields();
-                pegar();
-                setModif(false)
-            }
-            catch (err) {
-                message.error(err)
-            }
+    async function handleModif (v) {
+        try {            
+            v._id = rolM._id;
+            await serv.actualizar("roles", rolM._id, v);
+            message.success("Modificación exitosa.");
+            pegar();
+            reiniciar();
         }
-    }
-
-    const onFinishModif = async (v) => {
-        if (confirm('¿Guardar modificaciones?')) {
-            try {
-                await serv.actualizar('roles', rolM, v)
-                message.success('Modificación exitosa')
-                form1.resetFields();
-                form2.resetFields();
-                setModif(false)
-                pegar()
-            }
-            catch (err) {
-                message.error(err)
-            }
+        catch (err) {
+            console.error(err);
+            message.error(err.message);
         }
+    }    
 
+    async function handleBorra (v) {
+        try {
+            const resp = await serv.borrar("roles", rolM._id);
+            message.success(
+                <>
+                    <h3>¡Baja exitosa!</h3>
+                    <b>ID: </b> {resp._id} <br />
+                    <b>Codigo: </b> {resp.cod} <br />
+                    <b>Nombre: </b> {resp.name} <br />                    
+                </>
+            );
+            pegar();
+            reiniciar();
+        }
+        catch (err) {
+            console.error(err);
+            message.error(err.message);
+        }
     }
 
     const guardarID = async (v) => {
         const r = JSON.parse(v)
-        setRolM(r._id)
+        setRolM(r)
         setModif(false)
     }
 
     return (
-        <>
-            <h1>Buscar rol</h1>
-            <Form
-                {...layout}
-                form={form1}
-                name="formBuscarRol"
-                onFinish={onFinish}
-                style={{ maxWidth: 600 }}
-            >
-                <Form.Item name="rol" label="Rol" rules={[{ required: true }]}>
-                    <Select
-                        showSearch
-                        style={{ width: 200 }}
-                        onChange={guardarID}
-                        placeholder="Ingrese rol"
-                        optionFilterProp="children"
-                        filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
-                        filterSort={(optionA, optionB) => (optionA?.cod ?? '').toLowerCase().localeCompare((optionB?.cod ?? '').toLowerCase())}
-                    >    {roles.map(r => (
-                        <Option key={r._id} value={JSON.stringify(r)}>
-                            {r.cod + ' - ' + r.name}
-                        </Option>
-                        
-                    ))}
-                    </Select>
-                </Form.Item>
-                <Form.Item {...tailLayout}>
-                    <Button type="primary" htmlType="button" onClick={() => { setModif(!modif) }}>
-                        Modificar
-                    </Button>
-                    <Button type="primary" htmlType="submit" danger>
-                        Borrar rol
-                    </Button>
-                </Form.Item>
-            </Form>
-            <br></br><br></br>
-            {modif &&
-                (<>
-                    <Form {...layout} form={form2} name="formModif"
-                        onFinish={onFinishModif} style={{ maxWidth: 600 }}
+        <div>
+            <Row>
+                <Col span = {24}>
+                    <h1>Buscar rol</h1>
+                    <Form        
+                        labelCol={{ span: 3 }}
+                        wrapperCol={{ span: 5 }}        
+                        form={formBorra}
+                        name="formBorra"
+                        onFinish={handleBorra}
                     >
-                        <Form.Item name="cod" label="Código">
-                            <Input type="number" placeholder="Ingrese código" style={{ width: 200 }} />
+                        <Form.Item 
+                            name="rol" 
+                            label={<b>Rol</b>}
+                            rules={[{ required: true }]}>
+                            <Select
+                                showSearch                        
+                                onChange={guardarID}
+                                placeholder="Ingrese rol"
+                                optionFilterProp="children"
+                                filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                                filterSort={(optionA, optionB) => (optionA?.cod ?? '').toLowerCase().localeCompare((optionB?.cod ?? '').toLowerCase())}
+                            >    
+                                {roles.map(r => (
+                                    <Select.Option key={r._id} value={JSON.stringify(r)}>
+                                        {r.cod + ' - ' + r.name}
+                                    </Select.Option>
+                            ))}
+                            </Select>
                         </Form.Item>
-                        <Form.Item name="name" label="Nombre">
-                            <Input placeholder="Ingrese nombre" style={{ width: 200 }} />
-                        </Form.Item>
-                        <Form.Item {...tailLayout}>
-                            <Button type="primary" htmlType="submit">
-                                Enviar
+                        <Form.Item wrapperCol={{ offset: 3, span: 5, }}>
+                            <Link className = "botonLink" to = "../roles">
+                                Volver
+                            </Link>
+                            <Button type="primary" htmlType="button" onClick={() => { setModif(!modif) }}>
+                                Modificar
                             </Button>
-                            <Button htmlType="button" 
-                                onClick={() => form2.resetFields()}>
-                                Borrar
+                            <Button danger
+                                type="primary"
+                                onClick= {() => setModalB(true)}
+                            >
+                                Borrar rol
                             </Button>
+                            <Modal
+                                keyboard = {false}
+                                closable = {false}
+                                maskClosable = {false}
+                                open = {modalB}
+                                title = "¿Confirmar baja?"
+                                okText = "Aceptar"
+                                cancelText = "Cancelar"
+                                onCancel= {() => setModalB(false)}
+                                onOk = {() => formBorra.submit()}
+                            >
+                                {rolM && 
+                                    <>
+                                        <b>Codigo: </b> {rolM.cod} <br />
+                                        <b>Titulo: </b> {rolM.name} <br />
+                                    </>
+                                }
+                            </Modal>
                         </Form.Item>
                     </Form>
-                </>)
+                </Col>
+            </Row>                
+            {modif &&
+            <Row>
+                <Col span = {24}>
+                    <Form 
+                        labelCol={{span: 3}}
+                        wrapperCol={{span: 5}}
+                        form={formModif} 
+                        name="formModif"
+                        onFinish={handleModif}
+                    >
+                        <Form.Item 
+                            name="cod" 
+                            label={<b>Codigo</b>}
+                        >
+                            <Input type="number" placeholder={rolM.cod} />
+                        </Form.Item>
+                        <Form.Item 
+                            name="name" 
+                            label={<b>Nombre</b>}
+                            >
+                            <Input placeholder={rolM.name}/>
+                        </Form.Item>
+                        <Form.Item
+                            wrapperCol = {{offset: 3, span: 5}}
+                            >
+                            <Button type="primary" 
+                                onClick = {() => setModalM(true)}
+                                >
+                                Guardar cambios
+                            </Button>
+                            <Button htmlType="button" 
+                                onClick={() => formModif.resetFields()}
+                            >
+                                Borrar campos
+                            </Button>
+                            <Modal
+                                keyboard = {false}
+                                closable = {false}
+                                maskClosable = {false}
+                                open = {modalM}
+                                title = "¿Guardar cambios?"
+                                okText = "Aceptar"
+                                cancelText = "Cancelar"
+                                onCancel = {() => setModalM(false)}
+                                onOk={() => formModif.submit()}
+                            >
+                                <>
+                                    {formModif.getFieldValue("cod") && 
+                                        <>Codigo nuevo: <b>{formModif.getFieldValue("cod")}</b><br/></>}
+                                    {formModif.getFieldValue("name") && 
+                                        <>Nombre nuevo: <b>{formModif.getFieldValue("name")}</b><br/></>}
+                                </>
+                            </Modal>
+                        </Form.Item>
+                    </Form>
+                </Col>
+            </Row>                
             }
-        </>
+        </div>
     )
 }
 

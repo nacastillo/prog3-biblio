@@ -1,26 +1,13 @@
-import { useState, useEffect } from 'react'
-import { Button, Input, Form, message, Modal, Select, Space, Spin, Table } from 'antd'
+import { useContext, useState, useEffect } from 'react'
+import {Link} from "react-router-dom"
+import { Col, Row, Button, Input, Form, message, Modal, Select, Spin, Table } from 'antd'
 import serv from '../../services/librapi'
+import { AuthContext } from '../../components/AuthContext';
 
 function Generos() {
     const [cargando, setCargando] = useState(false);
     const [generos, setGeneros] = useState([])
-
-    const pegar = async () => {
-        try {
-            setCargando(true);
-            const res = await serv.getAll('generos')
-            setGeneros(res);
-            setCargando(false);
-        }
-        catch (err) {
-            alert(err)
-        }
-    }
-
-    useEffect(() => {
-        pegar();
-    }, [])
+    const {esBiblio, esAdmin} = useContext(AuthContext)
 
     const columnas = [
         {
@@ -35,259 +22,354 @@ function Generos() {
         },
     ]
 
-    return (
-        <>
-            {cargando ? (
-                <Spin tip="Cargando listado..." size="large">
-                    <div className="content" />
-                </Spin>
-            ) : (
-                <>
-                    {generos.length == 0 ?
-                        (<h1>No hay generos</h1>) :
-                        (<>
-                            <h1>Listado de todos los generos</h1>
-                            <Table dataSource={generos} columns={columnas} />
-                            <h3>Total de géneros: {generos.length}</h3>
-                        </>)
-                    }
-                </>
-            )}
-        </>
-    )
-}
-
-/** Para probar CRUD:
-   Suspenso
-   Biografía
-   Autoayuda
-   Poesía
-   Ciencia
-   Ensayo
-   Teatro
-   Deportivo
-   Comic
-   Manga
- */
-
-function AltaGenero() {
-
-
-
-    const layout = {
-        labelCol: {
-            span: 8,
-        },
-        wrapperCol: {
-            span: 16,
-        },
-    };
-
-    const tailLayout = {
-        wrapperCol: {
-            offset: 8,
-            span: 16,
-        },
-    };
-
-    const [form] = Form.useForm();
-
-    const onFinish = async (v) => {
-        if (confirm(`¿Confirma el alta del género?\nCodigo: ${v.cod}\nDescripción: ${v.desc}`)) {
-            try {
-                await serv.crear('generos', v)
-                message.success('Alta de género exitosa');
-                //alert('Alta de género exitosa')
-                form.resetFields();
-            }
-            catch (err) {
-                message.error(`El género no se pudo dar de alta (${err})`);
-                //alert(`El género no se pudo dar de alta\n${err}`)
-            }
-        }
-    }
-
-    return (
-        <>
-            <h1>Nuevo género</h1>
-            <Form
-                {...layout}
-                form={form}
-                name="formNuevoGenero"
-                onFinish={onFinish}
-                style={{
-                    maxWidth: 600,
-                }}
-            >
-                <Form.Item name="cod" label="Codigo" rules={[{ required: true }]}>
-                    <Input
-                        type="number"
-                        placeholder="Ingrese código"
-                        style={{ width: 200 }}
-                    />
-                </Form.Item>
-                <Form.Item name="desc" label="Descripción" rules={[{ required: true }]}>
-                    <Input
-                        placeholder="Ingrese descripción"
-                        style={{ width: 200 }}
-                    />
-                </Form.Item>
-                <Form.Item {...tailLayout}>
-                    <Button type="primary" htmlType="submit">
-                        Enviar
-                    </Button>
-                    <Button htmlType="button" onClick={() => form.resetFields()}>
-                        Borrar
-                    </Button>
-                </Form.Item>
-            </Form>
-        </>
-    )
-}
-
-function BajaGenero() {
-    const [generos, setGeneros] = useState([])
-    const [modif, setModif] = useState(false)
-    const [generoM, setGeneroM] = useState(null)
-
-    const pegar = async () => {
+    async function pegar () {
         try {
-            const res = await serv.getAll('generos')
-            setGeneros(res)
+            setCargando(true);
+            const res = await serv.getAll('generos');
+            setGeneros(res);
+            setCargando(false);
         }
         catch (err) {
-            alert(err)
+            console.error(err);
+            message.error("Error al cargar listado de generos");
         }
     }
 
     useEffect(() => {
         pegar();
-    }, [])
+    }, [])    
 
-    const { Option } = Select;
-    const layout = {
-        labelCol: {
-            span: 8,
-        },
-        wrapperCol: {
-            span: 16,
-        },
-    };
-    const tailLayout = {
-        wrapperCol: {
-            offset: 8,
-            span: 16,
-        },
-    };
-
-    const [form] = Form.useForm();
-
-    const onReset = () => {
-        form.resetFields();
-    }
-
-    const onFinish = async (v) => {
-        const genero = JSON.parse(v.genero)
-        if (confirm(`¿Confirma que desea eliminar el siguiente género?\n${genero.desc}`)) {
-            try {
-                await serv.borrar('generos', genero._id)
-                message.success('Género borrado exitosamente')
-                //alert('Género borrado exitosamente')
-                form.resetFields();
-                pegar();
+    return (
+        <div>
+            <Row>
+                <Col>
+                    <h1>Géneros</h1>
+                </Col>
+            </Row>
+            {(esBiblio() || esAdmin()) &&
+                <Row>
+                    <Col>
+                        <Link to ="../generos/nuevo" className= "botonLink">
+                            Nuevo
+                        </Link>                                        
+                        <Link to = "../generos/buscar" className= "botonLink">
+                            Buscar
+                        </Link>
+                    </Col>
+                </Row>
             }
-            catch (err) {
-                message.error(err)
-                //alert(err)
-            }
+            <Row>
+                <Col span = {24}>
+                {cargando ? 
+                    <Spin tip="Cargando listado..." size="large" />
+                    : 
+                    <>
+                        {generos.length == 0 ?
+                            (<h2>No hay géneros</h2>) 
+                            :
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px' }}>
+                                <Table 
+                                size = "middle"
+                                dataSource={generos} 
+                                columns={columnas} 
+                                pagination = {{
+                                    align: "center",
+                                    size: "small",
+                                    position: ["topLeft"],
+                                    showTotal: () => <b>Total de géneros: {generos.length}</b>
+                                }}
+                                />
+                            </div>                            
+                        }                
+                    </>
+                }        
+                </Col>        
+            </Row>
+        </div>
+    )
+}
+
+function AltaGenero() {
+    const [modalN, setModalN] = useState(false);
+    const [formNuevo] = Form.useForm();        
+
+    async function handle (v) {
+        try {
+            const resp = await serv.crear("generos", v);
+            message.success(
+                <>
+                    ¡Alta exitosa! <br />
+                    ID: <b>{resp._id}</b> <br />
+                    Código: <b>{resp.cod}</b> <br />
+                    Descripción: <b>{resp.desc}</b> <br />
+                </>
+            );
+            formNuevo.resetFields();
+            setModalN(false);            
+        }
+        catch (err) {
+            console.error(err);
+            message.error(err.response.data);
         }
     }
 
-    const onFinishModif = async (v) => {
-        if (confirm('¿Guardar modificaciones?')) {
-            try {
-                await serv.actualizar('generos', generoM, v)
-                message.success('Modificación exitosa')
-                //alert('Modificación exitosa')
-                form.resetFields();
-                setModif(false)
-                pegar()
-            }
-            catch (err) {
-                message.error(err)
-                //alert(err)
-            }
+    return (
+        <div>
+            <Row>
+                <Col span = {24}>            
+                    <h1>Nuevo género</h1>
+                    <Form
+                        labelCol = {{span: 3}}
+                        wrapperCol = {{span: 5}}
+                        form={formNuevo}
+                        name="formNuevo"
+                        onFinish={handle}
+                    >
+                        <Form.Item 
+                            name="cod" 
+                            label={<b>Código</b>} 
+                            rules={[{ required: true }]}
+                            >
+                            <Input type="number"
+                                placeholder="Ingrese código"                                
+                            />
+                        </Form.Item>
+                        <Form.Item 
+                            name="desc" 
+                            label={<b>Descripción</b>} 
+                            rules={[{ required: true }]}>
+                            <Input placeholder="Ingrese descripción" />
+                        </Form.Item>                
+                        <Form.Item wrapperCol={{offset: 3, span: 5}}>
+                            <Link to = "../generos" className = "botonLink">
+                                Volver
+                            </Link>
+                            <Button type="primary" onClick = {() => setModalN(true)}>
+                                Enviar
+                            </Button>                            
+                            <Button htmlType="button" onClick={() => formNuevo.resetFields()}>
+                                Borrar campos
+                            </Button>
+                            <Modal
+                                keyboard = {false}
+                                closable = {false}
+                                maskClosable = {false}
+                                open = {modalN}
+                                title = "¿Confirmar alta?"
+                                okText = "Aceptar"
+                                cancelText = "Cancelar"
+                                onCancel = {() => setModalN(false)}
+                                onOk = {() => formNuevo.submit()}
+                            >
+                                <b>Codigo: </b> {formNuevo.getFieldValue("cod")} <br />
+                                <b>Descripción: </b> {formNuevo.getFieldValue("desc")} <br />
+                            </Modal>
+                        </Form.Item>                
+                    </Form>
+                </Col>
+            </Row>
+        </div>
+    )
+}
+
+function BajaGenero() {
+    const [generos, setGeneros] = useState([])
+    const [generoM, setGeneroM] = useState(null)
+    const [modif, setModif] = useState(false)
+    const [modalM, setModalM] = useState(false);
+    const [modalB, setModalB] = useState(false);
+    const [formBorra] = Form.useForm();
+    const [formModif] = Form.useForm();  
+
+    async function pegar () {
+        try {
+            const res = await serv.getAll('generos')
+            setGeneros(res)
+        }
+        catch (err) {
+            console.error(err)
+            message.error("Problemas con el listado de géneros");
         }
     }
+
+    function reiniciar() {
+        formBorra.resetFields();
+        formModif.resetFields();
+        setModif(false);
+        setModalB(false);
+        setModalM(false);        
+        setGeneroM(null);
+    }
+
+    useEffect(() => {
+        pegar();
+    }, [])        
+
+    async function handleModif (v) {        
+        try {
+            v._id = generoM._id;
+            await serv.actualizar('generos', generoM._id, v);
+            message.success('Modificación exitosa');
+            pegar();
+            reiniciar();
+        }
+        catch (err) {
+            console.error(err);
+            message.error(err.response.data);
+        }
+    }
+
+    async function handleBorra (v) {        
+        try {
+            const resp =  await serv.borrar('generos', generoM._id)
+            message.success(
+                <>
+                    <h3>¡Baja exitosa!</h3>
+                    <b>ID: </b> {resp._id} <br />
+                    <b>Codigo: </b> {resp.cod} <br />
+                    <b>Descripción: </b> {resp.desc} <br />
+                </>
+            );                        
+            pegar();
+            reiniciar();
+        }
+        catch (err) {
+            console.error(err);
+            message.error(err.message);
+        }        
+    }    
 
     const guardarID = async (v) => {
         const g = JSON.parse(v)
-        setGeneroM(g._id)
+        setGeneroM(g)
         setModif(false)
     }
 
     return (
-        <>
-            <h1>Buscar género</h1>
-            <Form
-                {...layout}
-                form={form}
-                name="formBuscarGenero"
-                onFinish={onFinish}
-                style={{ maxWidth: 600 }}
-            >
-                <Form.Item name="genero" label="Género" rules={[{ required: true }]}>
-                    <Select
-                        showSearch
-                        style={{ width: 200 }}
-                        onChange={guardarID}
-                        placeholder="Ingrese género"
-                        optionFilterProp="children"
-                        filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
-                        filterSort={(optionA, optionB) => (optionA?.cod ?? '').toLowerCase().localeCompare((optionB?.cod ?? '').toLowerCase())}
-                    >    {generos.map(g => (
-                        <Option key={g._id} value={JSON.stringify(g)}>
-                            {g.cod + ' - ' + g.desc}
-                        </Option>
-                    ))}
-                    </Select>
-                </Form.Item>
-                <Form.Item {...tailLayout}>
-                    <Button type="primary" htmlType="button" onClick={() => { setModif(!modif) }}>
-                        Modificar
-                    </Button>
-                    <br></br><br></br>
-                    <Button type="primary" htmlType="submit" danger>
-                        Borrar género
-                    </Button>
-                </Form.Item>
-            </Form>
-            <br></br><br></br>
-
-            {/** PARTE DE LA MODIF */}
-            {modif &&
-                (<>
-                    <Form {...layout} form={form} name="formModif"
-                        onFinish={onFinishModif} style={{ maxWidth: 600 }}
+        <div>
+            <Row>
+                <Col span = {24}>
+                    <h1>Buscar género</h1>
+                    <Form          
+                        labelCol={{ span: 3 }}
+                        wrapperCol={{ span: 5 }}       
+                        form={formBorra}
+                        name="formBorra"
+                        onFinish={handleBorra}                
                     >
-                        <Form.Item name="cod" label="Codigo">
-                            <Input type="number" placeholder="Ingrese código" style={{ width: 200 }} />
+                        <Form.Item                              
+                            name="genero" 
+                            label={<b>Género</b>}
+                            rules={[{ required: true }]}>
+                            <Select
+                                showSearch                                
+                                onChange={guardarID}
+                                placeholder="Ingrese género"
+                                optionFilterProp="children"
+                                filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                                filterSort={(optionA, optionB) => (optionA?.cod ?? '').toLowerCase().localeCompare((optionB?.cod ?? '').toLowerCase())}
+                            >    
+                                {generos.map(g => (
+                                    <Select.Option key={g._id} value={JSON.stringify(g)}>
+                                        {g.cod + ' - ' + g.desc}
+                                    </Select.Option>
+                                ))}
+                            </Select>
                         </Form.Item>
-                        <Form.Item name="desc" label="Descripción">
-                            <Input placeholder="Ingrese descripción" style={{ width: 200 }} />
-                        </Form.Item>
-                        <Form.Item {...tailLayout}>
-                            <Button type="primary" htmlType="submit">
-                                Enviar
+                        <Form.Item wrapperCol = {{offset: 3, span: 5}}>   
+                            <Link to = "../generos" className = "botonLink">
+                                Volver
+                            </Link>                 
+                            <Button type="primary" htmlType="button" onClick={() => { setModif(!modif) }}>
+                                Modificar
+                            </Button>                    
+                            <Button danger
+                                type="primary" 
+                                onClick = {() => setModalB(true)}
+                                >
+                                Borrar género
                             </Button>
-                            <Button htmlType="button" onClick={onReset}>
-                                Borrar
-                            </Button>
+                            <Modal
+                                keyboard = {false}
+                                closable = {false}
+                                maskClosable = {false}
+                                open = {modalB}
+                                title = "¿Confirmar baja?"
+                                okText = "Aceptar"
+                                cancelText = "Cancelar"
+                                onCancel= {() => setModalB(false)}
+                                onOk = {() => formBorra.submit()}
+                            >
+                                {generoM && 
+                                    <>
+                                        <b>Codigo: </b> {generoM.cod} <br />
+                                        <b>Descripción: </b> {generoM.desc} <br />
+                                    </>
+                                }
+                            </Modal>
                         </Form.Item>
                     </Form>
-                </>)
-            }
-        </>
+                </Col>
+            </Row>            
+            {modif &&
+            <Row>
+                <Col span = {24}>
+                    <Form 
+                        labelCol = {{span: 3}}
+                        wrapperCol={{span: 5}}
+                        form={formModif} 
+                        name="formModif"
+                        onFinish={handleModif} 
+                    >
+                        <Form.Item 
+                            name="cod" 
+                            label={<b>Código</b>}
+                        >
+                            <Input type="number" placeholder = {generoM.cod} />
+                        </Form.Item>
+                        <Form.Item 
+                            name="desc" 
+                            label={<b>Descripción</b>}
+                        >
+                            <Input placeholder= {generoM.desc} />
+                        </Form.Item>
+                        <Form.Item
+                            wrapperCol = {{offset: 3, span: 5}}
+                        >
+                            <Button type="primary" 
+                                onClick = {() => setModalM(true)}
+                            >
+                                Guardar cambios
+                            </Button>
+                            <Button htmlType="button" 
+                                onClick={() => formModif.resetFields()}
+                            >
+                                Borrar campos
+                            </Button>
+                            <Modal
+                                keyboard = {false}
+                                closable = {false}
+                                maskClosable = {false}
+                                open = {modalM}
+                                title = "¿Guardar cambios?"
+                                okText = "Aceptar"
+                                cancelText = "Cancelar"
+                                onCancel = {() => setModalM(false)}
+                                onOk={() => formModif.submit()}
+                            >
+                                <>
+                                    {formModif.getFieldValue("cod") && 
+                                        <>Codigo nuevo: <b>{formModif.getFieldValue("cod")}</b><br/></>}
+                                    {formModif.getFieldValue("desc") && 
+                                        <>Descripción nueva: <b>{formModif.getFieldValue("desc")}</b><br/></>}
+                                </>
+                            </Modal>
+                        </Form.Item>
+                    </Form>
+                </Col>
+            </Row>            
+            }            
+        </div>
     )
 }
 

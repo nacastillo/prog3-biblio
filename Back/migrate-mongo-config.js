@@ -1,12 +1,9 @@
-/* eslint-disable no-undef */
-const env_path = process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : '.env'
-require('dotenv').config({ path: env_path })
+if (process.env.NODE_ENV) {    
+  require("dotenv").config({path: `.env.${process.env.NODE_ENV}`});
+}
 
-//const db_url = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/'
-//const db_name = process.env.MONGO_DB || 'test'
-
-const db_url = 'mongodb://127.0.0.1:27017/'
-const db_name = 'proyectov2'
+const db_url = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/'
+const db_name = process.env.MONGO_DB || 'prueba'
 
 module.exports = {
   mongodb: {

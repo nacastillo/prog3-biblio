@@ -1,11 +1,9 @@
 import axios from 'axios'
 
-//const addr = "localhost";
-const addr = "192.168.0.142";
-
-const api = axios.create({
-        //baseURL: 'http://localhost:3000',
-        baseURL: `http://${addr}:3000`,
+const addr = process.env.URL_BACK || "localhost";
+const port = process.env.PORT_BACK || 3000;
+const api = axios.create({        
+        baseURL: `http://${addr}:${port}`,
         timeout: 1000 * 10 // 10 segundos
     }
 )
@@ -18,8 +16,7 @@ api.interceptors.request.use (
 )
 
 api.interceptors.response.use (
-    (res) => res.data,
-    //(err) => Promise.reject(console.log(err))
+    (res) => res.data,    
     (err) => Promise.reject(err)
 )
 

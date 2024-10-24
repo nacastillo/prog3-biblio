@@ -36,8 +36,12 @@ async function getAllUsers(req, res, next) {/*
 async function crearUser(req, res, next) {
     const user = req.body
     try {
-        const userN = await User.create({ ...user })
-        res.send(userN)
+        const pwdHasheada = await bcrypt.hash(user.pwd,10);
+        const userN = await User.create({ 
+            ...user,
+            pwd:pwdHasheada
+        });
+        res.send(userN);
     }
     catch (err) {
         next(err)
@@ -46,7 +50,7 @@ async function crearUser(req, res, next) {
 
 async function leerUser(req, res, next) {    
     if (!req.params.id) {
-        res.status(404).send('No hay dni')
+        res.status(400).send('No hay dni')
     }
     try {
         const user = await User.findById(req.params.id).populate('role')
@@ -76,14 +80,10 @@ async function actualizarUser(req, res, next) {
             if (!newRole) {
                 res.status(404).send('ID de rol no encontrado')
             }
-        }
-        /** Campos a actualizar */
+        }        
         if (!req.body.email) {
             req.body.email = userA.email
-        }
-        if (!req.body.password) {
-            req.body.password = userA.password
-        }
+        }        
         if (!req.body.role) {
             req.body.role = userA.role
         }
@@ -102,7 +102,28 @@ async function actualizarUser(req, res, next) {
         if (!req.body.isActive) {
             req.body.isActive = userA.isActive
         }
+        /*
+        if (!req.body.password) {            
+            req.body.password = userA.password
+        }
+        */
+        if (req.body.pwd) {
+            //const pwdHasheada  = await bcrypt.hash(req.body.pwd, 10);
+            //req.body.pwd = pwdHasheada;
+            //req.body.pwd = userA.pwd
+            req.body.pwd = await bcrypt.hash(req.body.pwd, 10);
+        }
+        else {
+            req.body.pwd = userA.pwd
+        }
+        
         await userA.updateOne(req.body)
+        /*
+        await userA.updateOne({
+            ...req.body,
+            pwd: pwdHasheada
+        });
+        */
         res.send(userA)
     }
     catch (err) {
