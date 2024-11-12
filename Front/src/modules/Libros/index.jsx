@@ -5,15 +5,32 @@ import serv from '../../services/librapi'
 import { AuthContext } from '../../components/AuthContext';
 
 function Libros() {    
-    const [libros, setLibros] = useState([]);        
-    const [cargando, setCargando] = useState(false);    
+    const [libros, setLibros] = useState([]);      
+    const [cargando, setCargando] = useState(false);
+    const [modalN, setModalN] = useState(false);
+    const [modalB, setModalB] = useState(false);
+    const [modalM, setModalM] = useState(false);
+    const [libroM, setLibroM] = useState(null);
     const {esBiblio, esAdmin} = useContext(AuthContext);
+    const [formModif] = Form.useForm();
+
+    const locale = {
+        filterConfirm: 'Aceptar',
+        filterReset: 'Reiniciar',
+        sortTitle: 'Ordenar columna',
+        triggerDesc: 'Descendente',
+        triggerAsc: 'Ascendente',
+    };
 
     const columnas = [
         {
             title: 'Codigo',
             dataIndex: 'cod',
             key: 'cod',
+            defaultSortOrder: 'ascend',
+            sortDirections: ["ascend", "descend", "ascend"],
+            sorter: (a, b) => a.cod - b.cod
+
         },
         {
             title: 'Titulo',
@@ -40,26 +57,69 @@ function Libros() {
             dataIndex: 'id_genero',
             key: 'id_genero',
             render: g => (g ? g.desc : 'Sin género'),
+            filters: [],            
+            onFilter: (value, record) => record.id_genero.desc === value
         },
+        (esAdmin() || esBiblio()) ?
+        {
+            title: "Accion",
+            key: "Action",
+            render: (_, record) => (
+                <>
+                    <Button 
+                        type = "primary"
+                        size = "small"
+                        onClick = {() =>{
+                            setModalM(true)
+                            setLibroM(record);
+                        }}
+                        >
+                        Modificación rápida
+                    </Button>                    
+                </>
+            )
+        } : {}
     ];
 
-    async function pegar () {
+    async function handleModif (v) {
         try {
-            setCargando(true);
+            await serv.actualizar("libros", libroM._id, v);
+            message.success("Cambios guardados");
+            pegar();
+            setModalM(false);            
+            setLibroM(null);
+            formModif.resetFields();
+        }
+        catch (err) {
+            console.error(err);
+            message.error(err.message);
+        }
+
+    }
+
+    async function pegar () {
+        setCargando(true);
+        try {            
             const res = await serv.getAll('libros')
-            setLibros(res);
-            setCargando(false)
+            setLibros(res);            
         }
         catch (err) {
             console.error(err);
             message.error("Error al cargar listado de libros");
-        }
+        }        
+        setCargando(false);
     }
 
     useEffect(() => {
         pegar();
     }, [])
     
+    const generos = new Map();
+    libros.forEach(x => {
+        generos.set(x.id_genero.desc, x.id_genero.desc);
+    });    
+    columnas[5].filters = Array.from(generos).map(x => {return {text:x[0], value: x[1]}});    
+
     return (
         <div>
             <Row>
@@ -85,12 +145,13 @@ function Libros() {
                     <Spin tip="Cargando listado..." size="large" />
                     : 
                     <>                
-                        {libros.length == 0 ?
+                        {libros.length === 0 ?
                             <h2>No hay libros</h2> 
                             :
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px' }}>
+                            <div className = "tableContainer">
                                 <Table 
                                     size = "middle"
+                                    locale = {locale}
                                     dataSource={libros} 
                                     columns={columnas}
                                     pagination = {{
@@ -104,6 +165,43 @@ function Libros() {
                         }                
                     </>
                 }
+                </Col>
+            </Row>
+            <Row>
+                <Col span = {24}>
+                    <Modal                        
+                        closable = {false}
+                        maskClosable = {false}
+                        open = {modalM}
+                        title = {libroM?.titulo}
+                        okText = "Guardar cambios"
+                        cancelText = "Atrás"
+                        onCancel= {() => setModalM(false)}
+                        onOk = {formModif.submit}
+                    >
+                        <Form
+                            labelCol = {{span: 12}}
+                            wrapperCol = {{span: 12}}
+                            form = {formModif}
+                            name = "formModif"
+                            onFinish = {handleModif}
+                        >
+                            <Form.Item
+                                name = "lecturaLocal"
+                                label = {<b>Para lectura local</b>}
+                            >
+                                <Input type = "number"
+                                    placeholder= {libroM?.lecturaLocal} />
+                            </Form.Item>
+                            <Form.Item
+                                name = "paraPrestamo"
+                                label = {<b>Para préstamo</b>}
+                        >
+                            <Input type = "number"
+                                placeholder= {libroM?.paraPrestamo} />                                
+                            </Form.Item>
+                        </Form>
+                    </Modal>            
                 </Col>
             </Row>
         </div>
@@ -138,7 +236,7 @@ function AltaLibro() {
         }
         catch (err) {
             console.error(err);
-            message.error(err.response.data);
+            message.error(err.message);
         }
     }
 
@@ -149,7 +247,7 @@ function AltaLibro() {
         }
         catch (err) {
             console.error(err);
-            message.error(err.response.data);
+            message.error(err.message);
         }
     }
 
@@ -242,7 +340,7 @@ function AltaLibro() {
                             <Button htmlType="button" onClick={() => formNuevo.resetFields()}>
                                 Limpiar
                             </Button>
-                            <Modal                                
+                            <Modal
                                 keyboard = {false}
                                 closable = {false}
                                 maskClosable = {false}
@@ -263,7 +361,7 @@ function AltaLibro() {
                         </Form.Item>
                     </Form>
                 </Col>
-            </Row>
+            </Row>            
         </div>
     )
 }
@@ -276,8 +374,7 @@ function BajaLibro() {
     const [modalM, setModalM] = useState(false);
     const [modalB, setModalB] = useState(false);
     const [formModif] = Form.useForm();
-    const [formBorra] = Form.useForm();    
-    const {esBiblio, esAdmin} = useContext(AuthContext);
+    const [formBorra] = Form.useForm();        
 
     async function pegar () {    
         try {
@@ -309,9 +406,7 @@ function BajaLibro() {
 
     useEffect(() => {
         pegar();
-    }, [])    
-
-    
+    }, []);    
 
     async function handleModif (v) {
         try {
@@ -329,7 +424,7 @@ function BajaLibro() {
             console.error(err);
             message.error(err.message);
         }
-    }    
+    };
 
     async function handleBorra (v) {
         try {
@@ -536,5 +631,3 @@ function BajaLibro() {
 }
 
 export { Libros, AltaLibro, BajaLibro }
-
-// export default Libros

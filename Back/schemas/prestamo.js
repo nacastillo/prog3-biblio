@@ -3,12 +3,10 @@ const mongoose = require ('mongoose');
 const Schema = mongoose.Schema;
 const { ObjectId } = Schema.Types;
 
-const prestamoSchema = new Schema ({  
-    cod: {
-      type: Number,
-      required: true,
-      unique: true
-    },      
+const prestamoSchema = new Schema ({
+    fechaInicio: {
+      type: Date
+    },
     id_libro: {
       type: ObjectId,
       ref: 'Libro',
@@ -23,6 +21,9 @@ const prestamoSchema = new Schema ({
       type: Date,
       required: true    
     },
+    fechaDevuelto: {
+      type: Date,            
+    }
 });
 
 module.exports = mongoose.model('Prestamo', prestamoSchema);

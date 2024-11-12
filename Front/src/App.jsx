@@ -12,7 +12,7 @@ import { Prestamos, AltaPrestamo, BajaPrestamo } from './modules/Prestamos'
 import { Generos, AltaGenero, BajaGenero } from './modules/Generos'
 import { Roles, AltaRol, BajaRol } from './modules/Roles'
 import { Usuarios, AltaUsuario, BajaUsuario } from './modules/Usuarios'
-import Generos2 from "./modules/Generos/indexNuevo";
+import MisPrestamos from "./modules/MisPrestamos";
 
 function App() {
 
@@ -34,10 +34,10 @@ function App() {
                                     <Route path={`prestamos`} element={<Prestamos />} />
                                     <Route path="prestamos/nuevo" element={<AltaPrestamo />} />
                                     <Route path="prestamos/buscar" element={<BajaPrestamo />} />
+                                    <Route path={`misprestamos`} element={<MisPrestamos />} />
                                     <Route path={`generos`} element={<Generos />} />
                                     {(esAdmin() || esBiblio()) && <Route path="generos/nuevo" element={<AltaGenero />} />}
-                                    <Route path="generos/buscar" element={<BajaGenero />} />
-                                    {/* <Route path="generos2" element= {<Generos2 />} /> */}
+                                    <Route path="generos/buscar" element={<BajaGenero />} />                                    
                                     <Route path={`roles`} element={<Roles />} />
                                     {esAdmin() && <Route path="roles/nuevo" element={<AltaRol />} />}
                                     <Route path="roles/buscar" element={<BajaRol />} />

@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
         catch (err) {
             console.error(err);
             setAutenticado(false);
-            throw new Error(`Error ${err.response.status}: ${err.message}`);
+            throw new Error(`Error: ${err.message}`);
         }
     }
 
@@ -58,6 +58,20 @@ export const AuthProvider = ({ children }) => {
         }
     }
 
+    function getId() {
+        if (autenticado) {
+            const decoded = jwtDecode(localStorage.getItem("nicastillo.prog3"));
+            return decoded.id;
+        }
+    }
+
+    function penalizadoHasta () {
+        if (autenticado) {
+            const decoded = jwtDecode(localStorage.getItem("nicastillo.prog3"));            
+            return decoded.penalizado;
+        }
+    }
+
     function esSocio () {        
         return getRol() === "Socio";
     }
@@ -86,6 +100,8 @@ export const AuthProvider = ({ children }) => {
             getFullName,
             getPrestamos,
             getRol,
+            getId,
+            penalizadoHasta,
             esSocio,
             esBiblio,
             esAdmin}}

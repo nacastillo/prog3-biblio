@@ -16,6 +16,7 @@ const userSchema = new Schema({
     dni:      { type: String,   required: true, unique: true },
     bornDate: { type: Date },
     isActive: { type: Boolean, default: true },
+    penalizadoHasta: {type: Date}
 })
 
 userSchema.method('checkPassword', async function checkPassword(potentialPassword) {

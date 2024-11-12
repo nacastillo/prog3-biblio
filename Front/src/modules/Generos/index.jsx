@@ -19,6 +19,9 @@ function Generos() {
             title: 'Descripcion',
             dataIndex: 'desc',
             key: 'desc',
+            filters: [],
+            onFilter: (value, record) => record.desc.indexOf(value) === 0,
+
         },
     ]
 
@@ -28,6 +31,7 @@ function Generos() {
             const res = await serv.getAll('generos');
             setGeneros(res);
             setCargando(false);
+            //columnas[1].filters = generos.map(x => {return {text: x.desc, value: x.desc}})
         }
         catch (err) {
             console.error(err);
@@ -37,7 +41,12 @@ function Generos() {
 
     useEffect(() => {
         pegar();
-    }, [])    
+        //console.log(generos)
+        //columnas[1].filters = generos.map(x => {return {text: x.desc, value: x.desc}})
+    }, []);
+
+    //console.log(generos)
+    columnas[1].filters = generos.map(x => {return {text: x.desc, value: x.desc}})
 
     return (
         <div>
@@ -68,7 +77,7 @@ function Generos() {
                             (<h2>No hay géneros</h2>) 
                             :
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px' }}>
-                                <Table 
+                                <Table                                 
                                 size = "middle"
                                 dataSource={generos} 
                                 columns={columnas} 

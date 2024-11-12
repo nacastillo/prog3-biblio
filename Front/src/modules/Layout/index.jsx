@@ -4,7 +4,7 @@ import { BookOutlined, CalendarOutlined, HomeOutlined, LoginOutlined, LogoutOutl
 import { Col, Row, Layout, Menu } from 'antd'
 import { AuthContext } from '../../components/AuthContext';
 
-const { Header, Content, Footer, Sider } = Layout
+const { Header, Content, Footer} = Layout
 
 function getItem(label, key, icon, children) {
     return {
@@ -31,26 +31,42 @@ const App = () => {
         autenticado && getItem(<Link to= "logout" >Cerrar sesión</Link>, '10', <LogoutOutlined /> )
     ]    
 
-    // items.map(
-    //     x => console.log(x.label)
-    // )      
+    const items2 = [
+        getItem(<Link to="/"> Home </Link>, '1', <HomeOutlined />),
+        getItem(<Link to="about"> Acerca de </Link>, '2', <HomeOutlined />),
+        getItem(<Link to="login"> Iniciar sesión </Link>, '3', <LoginOutlined />),                
+        getItem(<Link to = "libros"> Libros </Link>, '4', <BookOutlined />),
+        getItem(<Link to = "misprestamos">Mis préstamos</Link>, "5", <CalendarOutlined />),        
+        getItem(<Link to = "prestamos"> Prestamos </Link>, '6', <CalendarOutlined />),        
+        getItem(<Link className="test" to = "generos">Generos</Link>,"7", <TagsOutlined />),
+        getItem(<Link to = "usuarios"> Usuarios </Link>, '8', <TeamOutlined />),        
+        getItem(<Link className="test" to = "roles"> Roles </Link>, '9', <SecurityScanOutlined />),                
+        getItem(<Link to= "logout" >Cerrar sesión</Link>, '10', <LogoutOutlined /> )
+    ]    
+
+       
     return (
         <Layout>
             <Header className= "header">
                 <Row style = {{height: "100%"}}>
-                    <Col span = {4} style={{ display: 'flex', alignItems: 'center', height: '100%' }}>                        
+                    <Col xxl= {4} xl={24} lg={12} md={8} sm={24} xs={24} 
+                        style={{ display: 'flex', alignItems: 'center', height: '100%' }}>                        
                         <h1 style = {{textAlign: "center", color: "#FAFAFA"}}>Biblioteca Romeo</h1>                        
                     </Col>
-                    <Col span = {15}>
+                    <Col xxl= {15} xl={24} lg={12} md={16} sm={24} xs={24}
+                        >
                         <Menu 
-                            style = {{color: "#FAFAFA", backgroundColor: "#232D4F"}}
+                            style = {{color: "#FAFAFA", backgroundColor: "#001529"}}
                             mode="horizontal" 
+                            theme= "dark"
                             items={items}
+                            selectedKeys={[]}
                         >                            
                         </Menu>
                         
                     </Col>
-                    <Col span = {5} style={{ display: 'flex', justifyContent: "flex-end", alignItems: 'center', height: '100%' }}>
+                    <Col xxl= {5} xl={24} lg={24} md={24} sm={24} xs={24}
+                        style={{ display: 'flex', justifyContent: "flex-end", alignItems: 'center', height: '100%' }}>
                         <h3 style = {{color: "#FAFAFA"}}>
                             {autenticado?
                             `${getFullName()} - ${getRol()}`

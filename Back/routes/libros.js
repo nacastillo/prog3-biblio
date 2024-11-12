@@ -5,10 +5,22 @@ const Genero = require('../schemas/genero')
 const router = express.Router()
 
 router.get('/', getAllLibros)
+router.get("/getPrestables", getPrestables)
 router.post('/', crearLibro)
 router.get('/:id', leerLibro)
 router.put('/:id', actualizarLibro)
 router.delete('/:id', borrarLibro)
+
+async function getPrestables (req, res, next) {
+    try {
+        const libros = await Libro.find({}).populate("id_genero");
+        const prestables = libros.filter(x => x.paraPrestamo > 0);
+        return res.send(prestables);
+    }   
+    catch (err) {
+        return next(err);
+    }
+}
 
 async function getAllLibros(req, res, next) {
     try {

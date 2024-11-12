@@ -8,7 +8,8 @@ function generarToken (obj) {
             user: obj.usr,
             id: obj._id,
             fullName: obj.fullName,
-            rol: obj.role.name        
+            rol: obj.role.name,
+            penalizado: obj.penalizadoHasta
         },
         SECRET
     );

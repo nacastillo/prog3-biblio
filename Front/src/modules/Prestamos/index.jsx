@@ -1,42 +1,39 @@
 import { useContext, useState, useEffect } from 'react'
 import { Link } from "react-router-dom";
-import { Row, Col, Button, Checkbox, DatePicker, Form, Input, message, Select, Space, Spin, Table } from 'antd'
+import { Row, Col, Button, Checkbox, DatePicker, Form, Input, message, Modal, Select, Space, Spin, Table } from 'antd'
 import serv from '../../services/librapi'
 import { AuthContext } from "../../components/AuthContext";
 import dayjs from "dayjs";
 
 function Prestamos() {
-    const [cargando, setCargando] = useState(false);
-    const [prestamos, setPrestamos] = useState([])
-    const msjConfirm = (r) => {
-        if (r.id_libro && r.id_socio) {
-            return `¿Confirma que desea eliminar el siguiente prestamo?\n\nLibro: ${r.id_libro.titulo}\nUsuario: ${r.id_socio.fullName}\nFecha fin: ${r.fechaFin}`
-        }
-        else {
-            return '¿Confirma que desea eliminar el prestamo?'
-        }
-    }
-
+    const [prestamos, setPrestamos] = useState([]);
+    const [cargando, setCargando] = useState(false);   
+    const [modalN, setModalN] = useState(false);
+    const [modalB, setModalB] = useState(false);
+    const [modalM, setModalM] = useState(false);
+    const [modalMUsuario, setModalMUsuario] = useState(false);
+    const [prestamoM, setPrestamoM] = useState(null);
+    const [socioM, setSocioM] = useState(null);
     const {esSocio, esAdmin, esBiblio} = useContext(AuthContext);
 
-    const handleBorrar = async (r) => {
-        if (confirm(msjConfirm(r))) {
-            try {
-                await serv.borrar('prestamos', r._id)
-                message.success('Prestamo borrado exitosamente')
-                pegar();
-            }
-            catch (err) {
-                message.error('El prestamo no se pudo borrar')
-            }
-        }
-    }
+    const locale = {
+        filterConfirm: 'Aceptar',
+        filterReset: 'Reiniciar',
+        sortTitle: 'Ordenar columna',
+        triggerDesc: 'Descendente',
+        triggerAsc: 'Ascendente',
+    };
 
-    const columnas = [
+    const columnas = [        
         {
-            title: 'Codigo',
-            dataIndex: 'cod',
-            key: 'cod',
+            title: 'Fecha de inicio',
+            dataIndex: 'fechaInicio',
+            key: 'fechaInicio',
+            render: r => (r ? dayjs(r).format("DD/MM/YYYY") : "no tiene"),
+            filters: [],
+            onFilter: (value, record) => record.fechaInicio === value,
+            sorter: (a, b) => new Date (a.fechaInicio).getTime() - new Date (b.fechaInicio).getTime(),
+            sortDirections: ["ascend", "descend", "ascend"],
         },
         {
             title: 'Libro',
@@ -45,43 +42,150 @@ function Prestamos() {
             render: (l) => (l ? l.titulo : '')
         },
         {
-            title: 'Usuario',
+            title: 'Socio',
             dataIndex: 'id_socio',
             key: 'id_socio',
-            render: (u) => (u ? `${u.fullName}` : '')
+            render: (u) => (u ? `${u.fullName}` : ''),
+            filters: [],
+            onFilter: (value, record) => record.id_socio.fullName === value,
+
         },
         {
-            title: 'Fecha de finalización',
+            title: 'Finaliza',
             dataIndex: 'fechaFin',
             key: 'fechaFin',
+            render: r => (r ? dayjs(r).format("DD/MM/YYYY") : "no tiene"),
+            filters: [],
+            onFilter: (value, record) => record.fechaFin === value,
+            sorter: (a, b) => new Date (a.fechaFin).getTime() - new Date (b.fechaFin).getTime(),
+            sortDirections: ["ascend", "descend", "ascend"],
         },
+        {
+            title: "Devuelto",
+            dataIndex: "fechaDevuelto",
+            key: "fechaDevuelto",
+            render: r => (r ? dayjs(r).format("DD/MM/YYYY") : "no"),
+            filters: [],
+            onFilter: (value, record) => record.fechaDevuelto? record.fechaDevuelto === value : "no" === value,
+            sorter: (a, b) => new Date (a.fechaDevuelto).getTime() - new Date (b.fechaDevuelto).getTime(),
+            sortDirections: ["ascend", "descend", "ascend"],
+
+        },
+        {
+            title: "Fuera de término",
+            dataIndex: "termino",
+            key: "termino",  
+            filters: [{text: "Sí", value: "Sí"},{text: "No", value: "No"},{text: "---", value: "---"}],
+            onFilter: (value, record) => record.termino === value            
+        },
+        (esAdmin() || esBiblio()) ?
         {
             title: 'Accion',
             key: 'action',
-            render: (_, record) => (
-                <a style={{ color: "red" }} onClick={() => handleBorrar(record)}>Borrar</a>
+            render: (_, record) => (                
+                <>  
+                    <Button
+                        danger
+                        type = "primary"
+                        disabled = {!!record.fechaDevuelto}                        
+                        size = "small"
+                        onClick = {() => {
+                            setModalM(true);
+                            setPrestamoM(record);
+                        }}
+                    >                        
+                        Finalizar préstamo
+                    </Button>
+                    <Button                         
+                        color = "default"
+                        type = "primary" 
+                        size = "small"                         
+                        onClick={() => {
+                        setModalMUsuario(true);
+                        setSocioM(record);
+                    }}
+                    >
+                        Penalizar usuario
+                    </Button>
+                </>
             )
-        }
+        } : {}
     ];
 
+    async function handleBorra (r) {    
+        try {
+            await serv.borrar('prestamos', prestamoM._id)
+            message.success('Prestamo borrado exitosamente')
+            setModalB(false);
+            setPrestamoM(null);
+            pegar();                
+        }
+        catch (err) {
+            console.error(err);
+            message.error(err.message);
+        }        
+    } 
+    
+    async function handleFinalizar () {
+        try {
+            await serv.actualizar("prestamos/finalizar", prestamoM._id);
+            message.success(<b>Préstamo finalizado exitosamente</b>);
+            setModalM(false);
+            setPrestamoM(null);
+            pegar();
+        }
+        catch (err) {
+            console.error(err);
+            message.error(err.message);
+        }
+    }
 
-    const pegar = async () => {
-        setCargando(true);
-        const res = await serv.getAll('prestamos')
-        setPrestamos(res);
-        setCargando(false);
-        console.log(res);
+    async function handlePenalizar () {
+        alert("penalizar!!");
+    }
+
+    async function pegar () {    
+        try {
+            setCargando(true);
+            const res = await serv.getAll('prestamos')
+            setPrestamos(res);
+            setCargando(false);            
+        }
+        catch (err) {
+            console.error(err);
+            message.error("Error al cargar listado de préstamos");
+        }
     }
 
     useEffect(() => {
         pegar();
     }, [])
 
+    const socios = new Map ();
+    const fechas = new Map ();
+    const devueltos = new Map ();
+    prestamos.forEach(x => {
+        socios.set(x.id_socio.fullName, x.id_socio.fullName);
+        fechas.set(dayjs(x.fechaFin).format("DD/MM/YYYY"), x.fechaFin);
+        devueltos.set(
+            x.fechaDevuelto ? dayjs(x.fechaDevuelto).format("DD/MM/YYYY") : "no", 
+            x.fechaDevuelto ? x.fechaDevuelto: "no");
+    });
+    columnas[2].filters = Array.from(socios).map(x => {return {text: x[0], value: x[1]}});
+    columnas[3].filters = Array.from(fechas).map(x => {return {text: x[0], value: x[1]}});
+    columnas[4].filters = Array.from(devueltos).map(x => {return {text: x[0], value: x[1]}});
+    console.log(prestamos);
+    
     return (
         <div>
-            <Row>
+            <Row style = {{alignItems: "center"}}>
                 <Col>
                     <h1>Préstamos</h1>
+                </Col>
+                <Col offset= "1">
+                    <Button type = "primary" onClick = {()=> setModalN(true)}>
+                        Nuevo
+                    </Button>
                 </Col>
             </Row>
             {(esBiblio() || esAdmin()) &&
@@ -89,7 +193,7 @@ function Prestamos() {
                     <Col>
                         <Link to ="../prestamos/nuevo" className= "botonLink">
                             Nuevo
-                        </Link>                                        
+                        </Link>                        
                         <Link to = "../prestamos/buscar" className= "botonLink">
                             Buscar
                         </Link>
@@ -97,253 +201,334 @@ function Prestamos() {
                 </Row>
             }
             <Row>
-                <Col>
-                    {cargando ? (
-                        <Spin size="large" />
-                    ) : (
-                        <>
-                            {prestamos.length == 0 ?
-                                (<h1>No hay prestamos</h1>) :
-                                (<>
-                                    <h1>Listado de todos los préstamos</h1>
+                <Col span = {24}>
+                {cargando ? 
+                    <Spin size="large" />                     
+                    : 
+                    <>
+                        {prestamos.length === 0 ?
+                            <h2>No hay prestamos</h2> 
+                            :                            
+                            <div className = "tableContainer">
+                                <Table 
+                                    size = "middle"
+                                    locale = {locale}
+                                    dataSource={prestamos} 
+                                    columns={columnas} 
+                                    pagination = {{
+                                        align: "center",
+                                        size: "small",
+                                        position: ["topLeft"],
+                                        showTotal: () => <b>Total de préstamos: {prestamos.length}</b>
+                                    }}
+                                />                                
+                            </div>                                                            
+                        }
+                    </>
+                }
+                </Col>
+            </Row>
+            <Row>
+                <Col span = {24}>
+                    <Modal                        
+                        closable = {false}
+                        maskClosable = {false}
+                        open = {modalB}
+                        title = "¿Confirmar baja?"
+                        okText = "Aceptar"
+                        cancelText = "Cancelar"
+                        onCancel= {() => setModalB(false)}
+                        onOk = {handleBorra}
+                    >
+                        {prestamoM &&
+                            <>
+                                Codigo: <b>{prestamoM.cod}</b> <br />
+                                Libro: <b>{prestamoM.id_libro.titulo}</b> <br />
+                                Socio: <b>{prestamoM.id_socio.fullName}</b> <br />
+                                Fecha de devolución: <b>{dayjs(prestamoM.fechaFin).format("DD/MM/YYYY HH:mm")}</b> <br />
+                            </>
+                        }
+                    </Modal>
+                    <Modal                        
+                        closable = {false}
+                        maskClosable = {false}
+                        open = {modalMUsuario}
+                        title = "¿Penalizar usuario?"
+                        okText = "Aceptar"
+                        cancelText = "Cancelar"
+                        onCancel= {() => setModalMUsuario(false)}
+                        onOk = {handlePenalizar}
+                    >
+                    </Modal>
+                    <Modal                        
+                        closable = {false}
+                        maskClosable = {false}
+                        open = {modalM}
+                        title = "¿Finalizar préstamo?"
+                        okText = "Aceptar"
+                        cancelText = "Cancelar"
+                        onCancel= {() => setModalM(false)}
+                        onOk = {handleFinalizar}                    
+                    >
+                    </Modal>
 
-                                    <Table dataSource={prestamos} columns={columnas} />
-                                </>)
-                            }
-                        </>
-                    )}
+                </Col>
+            </Row>
+        </div>
+
+    )
+}
+
+function AltaPrestamo() {
+    const [libros, setLibros] = useState([])
+    const [socios, setSocios] = useState([])
+    const [modalN, setModalN] = useState(false);    
+    const [formNuevo] = Form.useForm();
+
+    async function handle (v) {
+        try {
+            const auxLibro = JSON.parse(v.id_libro)._id;
+            v.id_libro = auxLibro;
+            const auxSocio = JSON.parse(v.id_socio)._id;
+            v.id_socio = auxSocio;
+            const resp = await serv.crear('prestamos', v);            
+            message.success(
+                <>
+                    ¡Alta exitosa! <br />
+                    ID: <b>{resp._id}</b> <br />
+                    Libro: <b>{resp.id_libro.titulo}</b> <br />
+                    Socio: <b>{resp.id_socio.fullName}</b> <br />
+                    Fecha de devolución: <b>{dayjs(resp.fechaFin).format("DD/MM/YYYY") || "no tiene"}</b> <br />                    
+                </>
+            );
+            formNuevo.resetFields();
+            setModalN(false);
+            pegar();
+        }
+        catch (err) {
+            message.error(`El prestamo no se pudo dar de alta (${err})`)
+        }
+    };
+
+    async function pegar () {
+        try {
+            const resL = await serv.getAll('libros/getprestables');
+            setLibros(resL);            
+        }
+        catch (err) {
+            console.error(err);
+            message.error(err.message);
+        }
+        try {
+            const resU = await serv.getAll('usuarios/getbyrol/socio');
+            setSocios(resU);
+        }
+        catch (err) {
+            console.error(err);
+            message.error(err.message);
+        }
+    }    
+
+    useEffect(() => {
+        pegar();
+    }, [])
+
+    return (
+        <div>
+            <Row>
+                <Col span = {24}>            
+                <h1>Nuevo prestamo</h1>
+                <Form
+                    labelCol={{ span: 3 }}
+                    wrapperCol={{ span: 5}}
+                    form={formNuevo}
+                    name="formNuevo"
+                    onFinish={handle}
+                >
+                    <Form.Item
+                        name="id_libro"
+                        label= {<b>Libro</b>}
+                        rules={[{ required: true, },]}>
+                        <Select
+                            showSearch                            
+                            placeholder="Ingrese título de libro"
+                            optionFilterProp="children"
+                            filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                            filterSort={(optionA, optionB) => (optionA?.titulo ?? '').toLowerCase().localeCompare((optionB?.titulo ?? '').toLowerCase())}
+                            >
+                                {libros.map(libro => (
+                                <Select.Option key={libro._id} value = {JSON.stringify(libro)}>
+                                    {`${libro.titulo} (disp: ${libro.paraPrestamo})`}
+                                </Select.Option>
+                        ))}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item
+                        name="id_socio"
+                        label= {<b>Socio</b>}
+                        rules={[{ required: true}]}
+                    >
+                        <Select
+                            showSearch                            
+                            placeholder="Ingrese socio"
+                            optionFilterProp="children"
+                            filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                            filterSort={(optionA, optionB) => (optionA?.dni ?? '').toLowerCase().localeCompare((optionB?.dni ?? '').toLowerCase())}
+                            >
+                            {socios.map(u => (
+                                <Select.Option key={u._id} value = {JSON.stringify(u)}>
+                                    {u.dni + ' - ' + u.fullName}
+                                </Select.Option>
+                        ))}
+                        </Select>
+                    </Form.Item>
+                    {/* <Form.Item name="fechaFin" label="Fecha fin">
+                        <Space direction="vertical">
+                            <DatePicker onChange={onChange} 
+                            placeholder="Ingrese fecha"
+                            minDate = {dayjs()}
+                            />
+                        </Space>
+                    </Form.Item> */}
+                    <Form.Item wrapperCol={{ offset: 3, span: 5, }}>
+                        <Link to = "../prestamos" className = "botonLink">
+                            Volver
+                        </Link>
+                        <Button type="primary"
+                            onClick = {() => setModalN(true)}
+                        >
+                            Enviar
+                        </Button>
+                        <Button htmlType="button" onClick={() => formNuevo.resetFields()}>
+                            Borrar
+                        </Button>
+                        <Modal
+                            keyboard = {false}
+                            closable = {false}
+                            maskClosable = {false}
+                            open = {modalN}
+                            title = "¿Confirmar alta?"
+                            okText = "Aceptar"
+                            cancelText = "Cancelar"
+                            onCancel = {() => setModalN(false)}
+                            onOk = {() => formNuevo.submit()}
+                            >
+                            <>              
+                                Libro: <b>{formNuevo.getFieldValue("id_libro") && JSON.parse(formNuevo.getFieldValue("id_libro")).titulo}</b> <br/>
+                                Socio: <b>{formNuevo.getFieldValue("id_socio") && JSON.parse(formNuevo.getFieldValue("id_socio")).fullName}</b> <br/>
+                                Fecha de devolución: <b>{dayjs(new Date().getTime() + 15 * 86400000).format("DD/MM/YYYY")}</b>
+                            </>
+                        </Modal>
+                    </Form.Item>
+                </Form>
                 </Col>
             </Row>
         </div>
     )
 }
 
-function AltaPrestamo() {
-    const [libros, setLibros] = useState([])
-    const [usuarios, setUsuarios] = useState([])
-
-    const { Option } = Select;
-    const [form] = Form.useForm();
-
-    const onFinish = async (v) => {
-        /*
-        let f = new Date ();
-        f = setDate(f.getDate()+15);
-        
-        const expira = new Date() + 15 * 86400000;
-
-        const comprobarPrestamo = (x) => 
-        Math.floor((new Date() - new Date(x)) / 86400000) > 15;
-    
-        const formatear = (x) => {
-            const y = new Date (x);
-            return '' + (1 + y.getDate()) + '/' + (1 + y.getMonth()) + '/' + y.getFullYear();    
-        };
-        */
-
-        if (!v.fechaFin) {
-            v.fechaFin = new Date();
-            v.fechaFin.setDate(v.fechaFin.getDate() + 15);
-        }
-        if (confirm(`¿Confirma el alta del prestamo?\nFecha finalización: ${(v.fechaFin)}`)) {
-            try {
-                await serv.crear('prestamos', v)
-                message.success('Alta de prestamo exitosa')
-                form.resetFields();
-            }
-            catch (err) {
-                message.error(`El prestamo no se pudo dar de alta (${err})`)
-            }
-        }
-    };
-
-    const pegar = async () => {
-        try {
-            const resL = await serv.getAll('libros')
-            const resU = await serv.getAll('usuarios')
-            setLibros(resL);
-            setUsuarios(resU);
-        }
-        catch (err) {
-            message.error(err)
-        }
-    }
-
-    const onChange = (date, dateString) => {
-        form.setFieldsValue({
-            fechaFin: dateString
-        })
-        console.log(date, dateString);
-    };
-
-    function fechaa () {
-        const hoy = new Date();
-        const hoy2 = new Date(""+hoy.getFullYear(),""+ (hoy.getMonth()+1),""+ hoy.getDate());
-        //console.log(hoy.toISOString())
-        //console.log(hoy2);        
-        return hoy2;
-    }
-
-    useEffect(() => {
-        pegar();
-    }, [])
-
-    return (
-        <div>
-            <h1>Nuevo prestamo</h1>
-            <Form
-                labelCol={{ span: 8 }}
-                wrapperCol={{ span: 16 }}
-                form={form}
-                name="control-hooks"
-                onFinish={onFinish}
-                style={{
-                    maxWidth: 600,
-                }}
-            >
-                <Form.Item
-                    name="cod"
-                    label="Codigo"
-                    rules={[
-                        {
-                            required: true,
-                        },
-                    ]}
-                >
-                    <Input />
-                </Form.Item>
-                <Form.Item
-                    name="id_libro"
-                    label="Libro"
-                    rules={[{ required: true, },]}>
-                    <Select
-                        showSearch
-                        style={{ width: 200 }}
-                        placeholder="Ingrese título de libro"
-                        optionFilterProp="children"
-                        filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
-                        filterSort={(optionA, optionB) => (optionA?.titulo ?? '').toLowerCase().localeCompare((optionB?.titulo ?? '').toLowerCase())}
-                    >    {libros.map(libro => (
-                        <Option key={libro._id}>
-                            {libro.titulo}
-                        </Option>
-                    ))}
-                    </Select>
-                </Form.Item>
-                <Form.Item
-                    name="id_socio"
-                    label="Usuario"
-                    rules={[{ required: true, },
-                    ]}
-                >
-                    <Select
-                        showSearch
-                        style={{ width: 200 }}
-                        placeholder="Ingrese usuario"
-                        optionFilterProp="children"
-                        filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
-                        filterSort={(optionA, optionB) => (optionA?.dni ?? '').toLowerCase().localeCompare((optionB?.dni ?? '').toLowerCase())}
-                    >    {usuarios.map(u => (
-                        <Option key={u._id}>
-                            {u.dni + ' - ' + u.fullName}
-                        </Option>
-                    ))}
-                    </Select>
-                </Form.Item>
-                <Form.Item name="fechaFin" label="Fecha fin">
-                    <Space direction="vertical">
-                        <DatePicker onChange={onChange} 
-                        placeholder="Ingrese fecha"
-                        minDate = {dayjs()}
-                        />
-                    </Space>
-                </Form.Item>
-                <Form.Item wrapperCol={{ offset: 8, span: 16, }}>
-                    <Link to = "../prestamos" className = "botonLink">
-                        Volver
-                    </Link>
-                    <Button type="primary" htmlType="submit">
-                        Enviar
-                    </Button>
-                    <Button htmlType="button" onClick={() => form.resetFields()}>
-                        Borrar
-                    </Button>
-                </Form.Item>
-            </Form>
-
-        </div>
-    )
-}
-
 function BajaPrestamo() {
     const [libros, setLibros] = useState([])
-    const [usuarios, setUsuarios] = useState([])
+    const [socios, setSocios] = useState([])
     const [prestamos, setPrestamos] = useState([])
-    const [modif, setModif] = useState(false)
     const [prestamoM, setPrestamoM] = useState(null)
-
-    const { Option } = Select;
-
-    const [form1] = Form.useForm();
-    const [form2] = Form.useForm();
-
-    const onFinish = async (v) => {
-        const prestamo = JSON.parse(v.prestamo)
-        //if (confirm(`¿Confirma que desea eliminar el prestamo seleccionado?\nTitulo: ${libro.titulo}\nAutor: ${libro.autor}`)) {
-        if (confirm()) {
-            try {
-                await serv.borrar('prestamos', prestamo._id)
-                message.success('Préstamo borrado exitosamente')
-                form1.resetFields();
-                form2.resetFields();
-                pegar();
-                setModif(false)
-            }
-            catch (err) {
-                message.error(err)
-            }
+    const [modif, setModif] = useState(false)    
+    const [modalM, setModalM] = useState(false);
+    const [modalB, setModalB] = useState(false);
+    const [formModif] = Form.useForm();
+    const [formBorra] = Form.useForm();   
+    
+    async function pegar() {
+        try {
+            const resL = await serv.getAll('libros/getprestables');
+            setLibros(resL);
+        }
+        catch (err) {
+            console.error(err);
+            message.error("Problemas con el listado de libros");
+        }
+        try {
+            const resU = await serv.getAll('usuarios/getbyrol/socio');
+            setSocios(resU);
+        }
+        catch (err) {
+            console.error(err);
+            message.error("Problemas con el listado de socios");
+        }
+        try {
+            const resP = await serv.getAll('prestamos')
+            setPrestamos(resP);
+        }
+        catch (err) {
+            console.error(err);
+            message.error("Problemas con el listado de prestamos");
         }
     }
 
-    const onFinishModif = async (v) => {
-        if (confirm('¿Guardar modificaciones?')) {
-            try {
-                await serv.actualizar('prestamos', prestamoM, v)
-                message.success('Modificación exitosa')
-                form1.resetFields()
-                form2.resetFields()
-                setModif(false)
-                pegar()
-            }
-            catch (err) {
-                message.error(err)
-            }
-        }
+    function reiniciar() {
+        formBorra.resetFields();
+        formModif.resetFields();
+        setModif(false);
+        setModalB(false);
+        setModalM(false);        
+        setPrestamoM(null);
     }
+
+    async function handleModif (v) {     
+        try {
+            if (v.id_libro) {
+                const x = JSON.parse(v.id_libro);
+                v.id_libro = x;
+            }
+            if (v.id_socio) {
+                const x = JSON.parse(v.id_socio);
+                v.id_socio = x;
+            }
+            await serv.actualizar('prestamos', prestamoM._id, v)
+            message.success('Modificación exitosa')            
+            pegar();
+            reiniciar();
+        }
+        catch (err) {
+            console.error(err);
+            message.error(err.message);
+        }        
+    }
+    
+    async function handleBorra (v) {        
+        try {
+            const resp = await serv.borrar('prestamos', prestamoM._id)
+            message.success(
+                <>
+                    <h3>¡Baja exitosa!</h3>
+                    ID: <b>{resp._id}</b> <br />
+                    Libro: <b>{resp.id_libro.titulo}</b> <br />
+                    Socio: <b>{resp.id_socio.fullName}</b> <br />
+                    Fecha de devolución: <b>{dayjs(resp.fechaFin).format("DD/MM/YYYY") || "no tiene"}</b> <br />
+                </>
+            );
+            pegar();
+            reiniciar();
+            
+        }
+        catch (err) {
+            console.error(err)
+            message.error(err.message);            
+        }        
+    }    
 
     const onChange = (date, dateString) => {
-        form2.setFieldsValue({
+        formModif.setFieldsValue({
             fechaFin: dateString
         })
         console.log(date, dateString);
     };
 
-    const guardarID = async (v) => {
+    async function guardarID (v) {
         const p = JSON.parse(v)
-        setPrestamoM(p._id)
+        setPrestamoM(p)
         setModif(false)
-    }
-
-    const pegar = async () => {
-        const resL = await serv.getAll('libros');
-        const resU = await serv.getAll('usuarios');
-        const resP = await serv.getAll('prestamos')
-        setLibros(resL);
-        setUsuarios(resU);
-        setPrestamos(resP);
-        console.log(resL);
-        console.log(resU);
-    }
+    }        
 
     useEffect(() => {
         pegar();
@@ -351,102 +536,181 @@ function BajaPrestamo() {
 
     return (
         <div>
-            <h1>Buscar préstamo</h1>
-            <Form
-                labelCol={{ span: 8 }}
-                wrapperCol={{ span: 16 }}
-                form={form1}
-                name="formBajaPrestamo"
-                onFinish={onFinish}
-                style={{ maxWidth: 600 }}
-            >
-                <Form.Item name="prestamo" label="Prestamo" rules={[{ required: true, },]}>
-                    <Select
-                        showSearch
-                        style={{ width: 200 }}
-                        onChange={guardarID}
-                        placeholder="Ingrese prestamo"
-                        optionFilterProp="children"
-                        filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
-                        filterSort={(optionA, optionB) => (optionA?.cod ?? '').localeCompare((optionB?.cod ?? ''))}
-                    >    {prestamos.map(p => (
-                        <Option key={p._id} value={JSON.stringify(p)}>
-                            {`${p.cod} - ${p.id_libro.titulo} - ${p.id_socio.fullName} (${p.fechaFin})`}
-                        </Option>
-                    ))}
-                    </Select>
-                </Form.Item>
-                <Form.Item wrapperCol={{ offset: 8, span: 16, }}>
-                    <Link to = "../prestamos" className = "botonLink">
-                        Volver
-                    </Link>
-                    <Button type="primary" htmlType="button" onClick={() => { setModif(!modif) }}>
-                        Modificar
-                    </Button>
-                    <Button type="primary" htmlType="submit" danger>
-                        Borrar préstamo
-                    </Button>
-                </Form.Item>
-            </Form>
-            <br></br><br></br>
+            <Row>
+                <Col span = {24}>            
+                    <h1>Buscar préstamo</h1>
+                    <Form
+                        labelCol={{ span: 3 }}
+                        wrapperCol={{ span: 5 }}
+                        form={formBorra}
+                        name="formBajaPrestamo"
+                        onFinish={handleBorra}                
+                    >
+                        <Form.Item 
+                            name="prestamo" 
+                            label={<b>Préstamo</b>}
+                            rules={[{ required: true, },]}>
+                            <Select
+                                showSearch                        
+                                onChange={guardarID}
+                                placeholder="Seleccione prestamo"
+                                optionFilterProp="children"
+                                filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                                filterSort={(optionA, optionB) => (optionA?.cod ?? '').localeCompare((optionB?.cod ?? ''))}
+                            >    
+                                {prestamos.map(p => (
+                                <Select.Option key={p._id} value={JSON.stringify(p)}>
+                                    {`${p.id_libro.titulo} - ${p.id_socio.fullName} (${dayjs(p.fechaFin).format("DD/MM/YYYY")})`}
+                                </Select.Option>
+                            ))}
+                            </Select>
+                        </Form.Item>
+                        <Form.Item wrapperCol={{ offset: 3, span: 5, }}>
+                            <Link to = "../prestamos" className = "botonLink">
+                                Volver
+                            </Link>
+                            <Button type="primary" htmlType="button" onClick={() => { setModif(!modif) }}>
+                                Modificar
+                            </Button>
+                            <Button danger 
+                                type="primary" 
+                                onClick = {() => setModalB(true)}
+                                >
+                                Borrar préstamo
+                            </Button>
+                            <Modal
+                                keyboard = {false}
+                                closable = {false}
+                                maskClosable = {false}
+                                open = {modalB}
+                                title = "¿Confirmar baja?"
+                                okText = "Aceptar"
+                                cancelText = "Cancelar"
+                                onCancel= {() => setModalB(false)}
+                                onOk = {() => formBorra.submit()}                            
+                                >
+                                {prestamoM && 
+                                    <>                                        
+                                        Libro: <b>{prestamoM.id_libro.titulo || "no tiene"}</b> <br />
+                                        Socio: <b>{prestamoM.id_socio.fullName || "no tiene"}</b> <br />
+                                        Devolución: <b>{dayjs(prestamoM.fechaFin).format("DD/MM/YYYY") || "no tiene"}</b> <br />
+                                    </>
+                                    }
+                            </Modal>
+                        </Form.Item>
+                    </Form>
+                </Col>
+            </Row>                    
             {modif &&
-                (<Form
-                    labelCol={{ span: 8 }}
-                    wrapperCol={{ span: 16 }}
-                    form={form2}
-                    name="formModif"
-                    onFinish={onFinishModif}
-                    style={{ maxWidth: 600 }}
-                >
-                    <Form.Item name="cod" label="Código">
-                        <Input type="number" placeholder="Ingrese código" style={{ width: 200 }} />
-                    </Form.Item>
-                    <Form.Item name="id_libro" label="Libro" >
-                        <Select
-                            showSearch
-                            style={{ width: 200 }}
-                            placeholder="Ingrese libro"
-                            optionFilterProp="children"
-                            filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
-                            filterSort={(optionA, optionB) => (optionA?.cod ?? '').toLowerCase().localeCompare((optionB?.cod ?? '').toLowerCase())}
-                        >    {libros.map(x => (
-                            <Option key={x._id}>
-                                {x.cod + ' - ' + x.titulo}
-                            </Option>
-                        ))}
-                        </Select>
-                    </Form.Item>
-                    <Form.Item name="id_socio" label="Socio" >
-                        <Select
-                            showSearch
-                            style={{ width: 200 }}
-                            placeholder="Ingrese libro"
-                            optionFilterProp="children"
-                            filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
-                            filterSort={(optionA, optionB) => (optionA?.dni ?? '').toLowerCase().localeCompare((optionB?.dni ?? '').toLowerCase())}
-                        >    {usuarios.map(x => (
-                            <Option key={x._id}>
-                                {x.dni + ' - ' + x.fullName}
-                            </Option>
-                        ))}
-                        </Select>
-                    </Form.Item>
-                    <Form.Item name="fechaFin" label="Fecha fin">
-                        <Space direction="vertical">
-                            <DatePicker onChange={onChange} placeholder="Ingrese fecha" />
-                        </Space>
-                    </Form.Item>
-                    <Form.Item wrapperCol={{ offset: 8, span: 16, }}>
-                        <Button type="primary" htmlType="submit">
-                            Enviar
-                        </Button>
-                        <Button htmlType="button"
-                            onClick={() => form2.resetFields()}>
-                            Borrar
-                        </Button>
-                    </Form.Item>
-                </Form>
-                )}
+            <Row>
+                <Col span = {24}>
+                    <Form
+                        labelCol={{ span: 3 }}
+                        wrapperCol={{ span: 5 }}
+                        form={formModif}
+                        name="formModif"
+                        onFinish={handleModif}                        
+                    >                        
+                        <Form.Item 
+                            name="id_libro" 
+                            label={<b>Libro</b>}
+                            >
+                            <Select
+                                showSearch                                
+                                placeholder={prestamoM.id_libro.titulo}
+                                optionFilterProp="children"
+                                filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                                filterSort={(optionA, optionB) => (optionA?.cod ?? '').toLowerCase().localeCompare((optionB?.cod ?? '').toLowerCase())}
+                            >    {libros.map(x => (
+                                <Select.Option key={x._id} value = {JSON.stringify(x)}>
+                                    {x.cod + ' - ' + x.titulo}
+                                </Select.Option>
+                            ))}
+                            </Select>
+                        </Form.Item>
+                        <Form.Item 
+                            name="id_socio" 
+                            label={<b>Socio</b>}>
+                            <Select
+                                showSearch                                
+                                placeholder={prestamoM.id_socio.fullName}
+                                optionFilterProp="children"
+                                filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())}
+                                filterSort={(optionA, optionB) => (optionA?.dni ?? '').toLowerCase().localeCompare((optionB?.dni ?? '').toLowerCase())}
+                            >    {socios.map(x => (
+                                <Select.Option key={x._id} value = {JSON.stringify(x)}>
+                                    {x.dni + ' - ' + x.fullName}
+                                </Select.Option>
+                            ))}
+                            </Select>
+                        </Form.Item>
+                        <Form.Item 
+                            name="fechaInicio" 
+                            label= {<b>Fecha de inicio</b>}
+                            >
+                                <DatePicker 
+                                    needConfirm
+                                    format = "DD/MM/YYYY"
+                                    placeholder={dayjs(prestamoM.fechaInicio).format("DD/MM/YYYY")}
+                                />
+                        </Form.Item>
+                        <Form.Item 
+                            name="fechaFin" 
+                            label= {<b>Fecha estimada</b>}
+                            >
+                                <DatePicker 
+                                    needConfirm
+                                    format = "DD/MM/YYYY"
+                                    placeholder={dayjs(prestamoM.fechaFin).format("DD/MM/YYYY")}
+                                />
+                        </Form.Item>
+                        <Form.Item 
+                            name="fechaDevuelto" 
+                            label= {<b>Fecha devuelto</b>}
+                            >
+                                <DatePicker 
+                                    needConfirm
+                                    format = "DD/MM/YYYY"
+                                    placeholder={dayjs(prestamoM.fechaDevuelto).format("DD/MM/YYYY")}
+                                />                        
+                        </Form.Item>
+                        <Form.Item wrapperCol={{ offset: 3, span: 5, }}>
+                            <Button type="primary" 
+                                onClick = {() => setModalM(true)}
+                            >
+                                Guardar cambios
+                            </Button>
+                            <Button htmlType="button"
+                                onClick={() => formModif.resetFields()}>
+                                Borrar campos
+                            </Button>
+                            <Modal
+                                keyboard = {false}
+                                closable = {false}
+                                maskClosable = {false}
+                                open = {modalM}
+                                title = "¿Guardar cambios?"
+                                okText = "Aceptar"
+                                cancelText = "Cancelar"
+                                onCancel = {() => setModalM(false)}                                
+                                onOk={formModif.submit}
+                            >                                
+                                {formModif.getFieldValue("id_libro") && 
+                                    <>Libro nuevo: <b>{JSON.parse(formModif.getFieldValue("id_libro")).titulo}</b><br />
+                                    </>}
+                                {formModif.getFieldValue("id_socio") && 
+                                    <>Socio nuevo: <b>{JSON.parse(formModif.getFieldValue("id_socio")).fullName}</b><br />
+                                    </>}
+                                {formModif.getFieldValue("fechaFin") && 
+                                    <>Fecha de devolución nueva: <b>{dayjs(formModif.getFieldValue("fechaFin")).format("DD/MM/YYYY")}</b><br />
+                                    </>
+                                }
+                            </Modal>
+                        </Form.Item>
+                    </Form>                    
+                </Col>
+            </Row>
+            }
         </div>
     )
 }
