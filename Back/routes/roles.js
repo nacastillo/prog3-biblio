@@ -1,20 +1,17 @@
 const express = require('express')
-const bcrypt = require('bcrypt')
-
 const Role = require('../schemas/role')
 
 const router = express.Router()
-
 router.get('/', getAllRoles)
-
-/** Create -> Post, Read -> Get, Update -> Put, Delete -> Delete */
-
 router.post('/', crearRol)
 router.get('/:id', leerRol)
 router.put('/:id', actualizarRol)
 router.delete('/:id', borrarRol)
 
 async function getAllRoles(req, res, next) {
+    if (!req.userInfo.estaAutorizado) {
+        return res.status(403).send("No autorizado");
+    }
     try {
         const roles = await Role.find({});
         return res.send(roles);        
@@ -25,18 +22,24 @@ async function getAllRoles(req, res, next) {
 }
 
 async function crearRol(req, res, next) {
-    console.log('alta de rol: ', req.body)
+    if (!req.userInfo.esAdmin) {
+        return res.status(403).send("No autorizado");
+    }    
     const rol = req.body
     try {
         const rolN = await Role.create({ ...rol })
         return res.send(rolN);
     }
     catch (err) {
-        return next(err)
+        console.error(err);
+        return res.status(500).send(JSON.stringify(err));
     }
 }
 
 async function leerRol(req, res, next) {    
+    if (!req.userInfo.estaAutorizado) {
+        return res.status(403).send("No autorizado");
+    }
     try {
         const rol = await Role.findOne({ cod: req.params.id })
         if (!rol) {
@@ -51,8 +54,11 @@ async function leerRol(req, res, next) {
 }
 
 async function actualizarRol(req, res, next) {
+    if (!req.userInfo.esAdmin) {
+        return res.status(403).send("No autorizado");
+    }
     if (!req.params.id) {
-        return res.status(500).send('No hay _id')
+        return res.status(400).send('No hay _id')
     }
     try {
         const rolA = await Role.findById(req.params.id)
@@ -74,6 +80,12 @@ async function actualizarRol(req, res, next) {
 }
 
 async function borrarRol(req, res, next) {
+    if (!req.params.id) {
+        return res.status(400).send('No hay _id')
+    }
+    if (!req.userInfo.esAdmin) {
+        return res.status(403).send("No autorizado");
+    }
     try {
         const rol = await Role.findById(req.params.id)
         if (!rol) {
@@ -86,6 +98,5 @@ async function borrarRol(req, res, next) {
         return next(err)
     }
 }
-
 
 module.exports = router

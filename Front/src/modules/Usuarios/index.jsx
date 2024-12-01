@@ -1,6 +1,6 @@
 import { useContext, useState, useEffect } from 'react'
 import { Link} from "react-router-dom"
-import { Row, Col, Button, DatePicker, Form, Input, Modal, message, Space, Select, Spin, Table } from 'antd'
+import { Row, Col, Button, DatePicker, Form, Input, Modal, message, Space, Select, Spin, Table, Checkbox } from 'antd'
 import serv from '../../services/librapi'
 import { AuthContext } from "../../components/AuthContext"
 import dayjs from "dayjs"
@@ -105,7 +105,7 @@ function Usuarios() {
                             <div className = "tableContainer">                                
                                 <Table 
                                     size = "middle"
-                                    dataSource={usuarios} 
+                                    dataSource={usuarios.map(x => {return {...x, key: x._id}})} 
                                     columns={columnas}
                                     pagination = {{
                                         align: "center",
@@ -128,6 +128,7 @@ function AltaUsuario() {
     const [roles, setRoles] = useState([])
     const [modalN, setModalN] = useState(false);
     const [formNuevo] = Form.useForm();
+    const {esAdmin} = useContext(AuthContext);
 
     async function handle (v) {                
         try {
@@ -154,14 +155,25 @@ function AltaUsuario() {
         }
         catch (err) {
             console.error(err);
-            message.error(err.message);
+            if (err.response.data.code && err.response.data.code === 11000) {
+                message.error(`El siguiente campo se encuentra repetido:\n${JSON.stringify(err.response.data.keyValue)}`);
+            }
+            else {
+                message.error(err.message);
+            }
         }
     };
 
     async function pegar () {
         try {
             const res = await serv.getAll('roles')
-            setRoles(res);
+            if (esAdmin()) {
+                setRoles(res);
+            }
+            else {                
+                setRoles(res.filter(x => x.name != "Administrador"));
+            }
+            
         }
         catch (err) {
             console.error(err);
@@ -309,6 +321,7 @@ function BajaUsuario() {
     const [modif, setModif] = useState(null)
     const [modalM, setModalM] = useState(false);
     const [modalB, setModalB] = useState(false);
+    const [despenalizar, setDespenalizar] = useState(false);
     const [formModif] = Form.useForm();
     const [formBorra] = Form.useForm();        
 
@@ -341,16 +354,20 @@ function BajaUsuario() {
     }    
 
     async function handleModif (v) {
-        try {
+        try {            
             if (v.role) {
                 const x = JSON.parse(v.role);
                 v.role = x._id;
+            }            
+            if (despenalizar) {
+                v.penalizadoHasta = null;
             }
-            v.id = usuarioM._id;
+            v.id = usuarioM._id;            
             await serv.actualizar('usuarios', usuarioM._id, v);
             message.success("Modificación exitosa.");
             pegar();
-            reiniciar();            
+            reiniciar();   
+            setDespenalizar(false);
         }
         catch (err) {
             console.error(err);
@@ -418,7 +435,7 @@ function BajaUsuario() {
                             >    
                                 {usuarios.map(u => (
                                     <Select.Option key={u._id} value={JSON.stringify(u)}>
-                                        {u.dni + ' - ' + u.fullName}
+                                        {`${u.dni} - ${u.fullName} (${u.role.name})`}
                                     </Select.Option>
                                 ))}
                             </Select>
@@ -454,7 +471,7 @@ function BajaUsuario() {
                                         Nombre de usuario: <b>{usuarioM.usr}</b>  <br />
                                         Correo electrónico: <b>{usuarioM.email}</b>  <br />
                                         Teléfono: <b>{usuarioM.phone || "no tiene"}</b>  <br />
-                                        Rol: <b>{usuarioM.id_role? usuarioM.role.name : "no tiene"}</b> <br />
+                                        Rol: <b>{usuarioM.role? usuarioM.role.name : "no tiene"}</b> <br />
                                         Fecha de nacimiento: <b>{dayjs(usuarioM.bornDate).format("DD/MM/YYYY") || "no tiene"}</b> <br />
                                     </>
                                 }
@@ -517,6 +534,34 @@ function BajaUsuario() {
                                 placeholder={dayjs(usuarioM.bornDate).format("DD/MM/YYYY") || "Ingrese fecha"}
                             />                            
                         </Form.Item>
+                        {usuarioM.role.name === "Socio" && 
+                        <>
+                            <Form.Item 
+                                name="penalizadoHasta" 
+                                label={<b>Penalizado hasta</b>}
+                                >                            
+                                <DatePicker needConfirm                                    
+                                    format = "DD/MM/YYYY"
+                                    disabled = {despenalizar} 
+                                    placeholder={
+                                        usuarioM.penalizadoHasta ? 
+                                        dayjs(usuarioM.penalizadoHasta).format("DD/MM/YYYY") 
+                                        : 
+                                        "Ingrese fecha"
+                                    }
+                                />                            
+                            </Form.Item>
+                            <Form.Item
+                                name= "despenalizar"
+                                label = {<b>Despenalizar usuario</b>}
+                                >
+                                <Checkbox                                    
+                                    onChange = {() => setDespenalizar(!despenalizar)}                                    
+                                >
+                                </Checkbox>
+                            </Form.Item>
+                        </>
+                        }
                         <Form.Item 
                             name="role" 
                             label={<b>Rol</b>} 

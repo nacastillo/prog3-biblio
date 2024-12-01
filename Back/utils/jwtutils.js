@@ -3,7 +3,7 @@ const SECRET = "final-programacion-tres-para-el-inspt";
 
 function generarToken (obj) {
     process.stdout.write(`Creating user token for ${obj.usr}\n`);
-    return jwt.sign(
+    const token = jwt.sign(
         {
             user: obj.usr,
             id: obj._id,
@@ -11,33 +11,35 @@ function generarToken (obj) {
             rol: obj.role.name,
             penalizado: obj.penalizadoHasta
         },
-        SECRET
+        SECRET,
+        {algorithm: "HS512"}
     );
+    return `Bearer ${token}`;
 }
 
-function limpiarToken(req, next) {
+function limpiarToken(token) {
     const TOKEN_REGEX = /^\s*Bearer\s+(\S+)/g
-    const matches = TOKEN_REGEX.exec(req.headers.authorization)
-
-    if (!matches) {
-        return next(new createError.Unauthorized())
+    const matches = TOKEN_REGEX.exec(token)
+    if (matches) {
+        return matches[1];        
     }
-
-    //const [, token] = matches
-    const token = matches[1];
-    return token
+    else {
+        throw new Error("Problema al limpiar token");        
+    }    
 }
 
-function validarToken (token) {
+function extraerInfo (token) {
     try {
-        return !!jwt.verify(token,SECRET, {algorithms: ["HS256"]});        
+        return jwt.verify(token,SECRET, {algorithms: ["HS512"]});
     }
     catch (err) {
-        return false;
+        console.error(err);
+        return null;
     }
 }
 
 module.exports = {
     generarToken,
-    validarToken
+    limpiarToken,    
+    extraerInfo
 }

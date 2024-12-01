@@ -23,9 +23,7 @@ userSchema.method('checkPassword', async function checkPassword(potentialPasswor
     if (!potentialPassword) {
         return Promise.reject(new Error('Password is required'))
     }
-    const isMatch = await bcrypt.compare(potentialPassword, this.pwd)
-
-    return { isOk: isMatch, isLocked: !this.isActive }
+    return await bcrypt.compare(potentialPassword, this.pwd)    
 })
 
 const User = mongoose.model('User', userSchema)

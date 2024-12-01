@@ -1,6 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Row, Col, Button, Form, Input, message, Modal, Select, Spin, Table } from 'antd'
+import { Row, Col, message, Spin, Table } from 'antd'
 import serv from '../../services/librapi'
 import { AuthContext } from '../../components/AuthContext';
 import dayjs from "dayjs";
@@ -103,7 +102,7 @@ function MisPrestamos () {
                                 <Table
                                     size = "middle"
                                     columns = {columnas}
-                                    dataSource = {prestamos}
+                                    dataSource = {prestamos.map(x => {return {...x, key: x._id}})}
                                     pagination = {{
                                         align: "center",
                                         size: "small",

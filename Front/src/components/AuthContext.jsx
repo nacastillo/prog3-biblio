@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
 
     async function login (u,p) {
         try {
-            const token = await serv.login(u,p);
+            const token = await serv.login(u,p);            
             localStorage.setItem("nicastillo.prog3", token);
             setAutenticado(true);            
         }
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
 
     function getRol () {
         if (autenticado) {
-            const decoded = jwtDecode(localStorage.getItem("nicastillo.prog3"));
+            const decoded = jwtDecode(localStorage.getItem("nicastillo.prog3"));            
             return decoded.rol;
         }
         else {

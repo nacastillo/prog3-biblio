@@ -2,7 +2,6 @@ import {useContext} from "react";
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
 import About from "./modules/About"
 import Layout from './modules/Layout'
-import Home from './modules/Home'
 import NotFound from './modules/NotFound'
 import Login from './modules/Login'
 import Logout from './modules/Logout'
@@ -24,27 +23,27 @@ function App() {
                 <Routes>
                     <Route element={<Layout />}>
                         <>
-                            <Route path="/" element={<Home />} />
+                            <Route path="/" element={<About />} />
                             <Route path="/about" element={<About />} />
                             {autenticado ? 
                                 <>                                
                                     <Route path={'libros'} element={<Libros />} />
                                     {(esAdmin() || esBiblio()) && <Route path="libros/nuevo" element={<AltaLibro />} />}
-                                    <Route path="libros/buscar" element={<BajaLibro />} />
-                                    <Route path={`prestamos`} element={<Prestamos />} />
-                                    <Route path="prestamos/nuevo" element={<AltaPrestamo />} />
-                                    <Route path="prestamos/buscar" element={<BajaPrestamo />} />
+                                    {(esAdmin() || esBiblio()) && <Route path="libros/buscar" element={<BajaLibro />} />}
+                                    {(esAdmin() || esBiblio()) && <Route path="prestamos" element={<Prestamos />} />}
+                                    {(esAdmin() || esBiblio()) && <Route path="prestamos/nuevo" element={<AltaPrestamo />} />}
+                                    {(esAdmin() || esBiblio()) && <Route path="prestamos/buscar" element={<BajaPrestamo />} />}
                                     <Route path={`misprestamos`} element={<MisPrestamos />} />
-                                    <Route path={`generos`} element={<Generos />} />
+                                    {(esAdmin() || esBiblio()) && <Route path={`generos`} element={<Generos />} />}
                                     {(esAdmin() || esBiblio()) && <Route path="generos/nuevo" element={<AltaGenero />} />}
-                                    <Route path="generos/buscar" element={<BajaGenero />} />                                    
-                                    <Route path={`roles`} element={<Roles />} />
+                                    {(esAdmin() || esBiblio()) && <Route path="generos/buscar" element={<BajaGenero />} />}
+                                    {esAdmin() && <Route path="roles" element={<Roles />} />}
                                     {esAdmin() && <Route path="roles/nuevo" element={<AltaRol />} />}
-                                    <Route path="roles/buscar" element={<BajaRol />} />
-                                    <Route path={`usuarios`} element={<Usuarios />} />
+                                    {esAdmin() && <Route path="roles/buscar" element={<BajaRol />} />}
+                                    {(esAdmin() || esBiblio()) && <Route path={`usuarios`} element={<Usuarios />} />}
                                     {(esAdmin() || esBiblio()) && <Route path="usuarios/nuevo" element={<AltaUsuario />} />}
-                                    <Route path="usuarios/buscar" element={<BajaUsuario />} />
-                                    <Route path="logout" element={<Logout />} />
+                                    {(esAdmin() || esBiblio()) && <Route path="usuarios/buscar" element={<BajaUsuario />} />}
+                                    <Route path="logout" element={<Logout />}/>
                                 </>
                                 :                                                            
                                 <Route path="login" element={<Login />} />

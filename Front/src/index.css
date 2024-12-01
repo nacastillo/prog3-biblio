@@ -27,18 +27,9 @@ code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
-/*
-.ant-menu .ant-menu-item a,
-.ant-menu .ant-menu-item .anticon {
-    color: white !important;
-    background-color: #001529 !important;
-}
-*/
-
 .botonLink {
     background-color: #FFFFFF;
-    color: #000000;
-    /* margin-inline: 5px; */
+    color: #000000;    
     border: 1px solid #d9d9d9;
     padding-block: 7px;
     padding-inline: 15px;
@@ -56,7 +47,7 @@ code {
     position: fixed;
     top: 0;
     width: 100%;
-    height: 64px;    /* Puedes ajustar según la altura del Header */
+    height: 64px;
     z-index: 1000;
     background-color: #001529;
 }
@@ -65,27 +56,17 @@ code {
     position: fixed;
     bottom: 0;
     width: 100%;
-    height: 64px;    /* Ajusta según la altura del Footer */
+    height: 64px;
     z-index: 1000;
     background-color: #001529;
     text-align: center;
 }
 
 .content {
-    margin-top: 64px;    /* Espacio para el Header */
-    margin-bottom: 64px;    /* Espacio para el Footer */
+    margin-top: 64px;
+    margin-bottom: 64px;
     overflow-y: auto;
-    height: calc(100vh - 128px);    /* Altura total menos la del Header y Footer */
+    height: calc(100vh - 128px);
     padding: 16px;
-    background-color: #FAFAFA ;    /* Fondo para contrastar */
+    background-color: #FAFAFA ;
 }
-
-/*
-span.ant-menu-title-content a.test,
-span.ant-menu-title-content a.test:hover,
-span.ant-menu-title-content a.test::before,
-span.ant-menu-title-content a.test::after
-{
-    color: red
-}
-*/

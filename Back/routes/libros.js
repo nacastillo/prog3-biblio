@@ -1,9 +1,8 @@
 const express = require('express')
-const bcrypt = require('bcrypt')
 const Libro = require('../schemas/libro')
 const Genero = require('../schemas/genero')
-const router = express.Router()
 
+const router = express.Router()
 router.get('/', getAllLibros)
 router.get("/getPrestables", getPrestables)
 router.post('/', crearLibro)
@@ -23,8 +22,8 @@ async function getPrestables (req, res, next) {
 }
 
 async function getAllLibros(req, res, next) {
-    try {
-        const libros = await Libro.find({}).populate('id_genero')
+    try {        
+        const libros = await Libro.find({}).populate('id_genero')        
         return res.send(libros);                
     }
     catch (err) {
@@ -32,7 +31,10 @@ async function getAllLibros(req, res, next) {
     }
 }
 
-async function crearLibro(req, res, next) {    
+async function crearLibro(req, res, next) { 
+    if (!req.userInfo.estaAutorizado) {
+        return res.status(403).send("No autorizado");
+    }   
     const libro = req.body
     if (!libro.lecturaLocal) {
         libro.lecturaLocal = 0;
@@ -45,14 +47,18 @@ async function crearLibro(req, res, next) {
         const libroResp = await Libro.findById(libroN._id).populate("id_genero");
         return res.send(libroResp);
     }
-    catch (err) {
-        return next(err)
+    catch (err) {        
+        console.error(err);        
+        return res.status(500).send(JSON.stringify(err));
     }
 }
 
 async function leerLibro(req, res, next) {    
     if (!req.params.id) {
-        res.status(500).send("Falta ID");
+        res.status(400).send("Falta ID");
+    }
+    if (!req.userInfo.estaAutorizado) {
+        return res.status(403).send("No autorizado");
     }
     try {        
         const libro = await Libro.findById(req.params.id).populate('id_genero');
@@ -68,7 +74,10 @@ async function leerLibro(req, res, next) {
 
 async function actualizarLibro(req, res, next) {    
     if (!req.params.id) {
-        res.status(500).send("Falta ID");
+        res.status(400).send("Falta ID");
+    }
+    if (!req.userInfo.estaAutorizado) {
+        return res.status(403).send("No autorizado");
     }
     try {
         const libroA = await Libro.findById(req.params.id)
@@ -109,7 +118,10 @@ async function actualizarLibro(req, res, next) {
 
 async function borrarLibro(req, res, next) {
     if (!req.params.id) {
-        return res.status(500).send('Falta ID');
+        return res.status(400).send('Falta ID');
+    }
+    if (!req.userInfo.estaAutorizado) {
+        return res.status(403).send("No autorizado");
     }
     try {
         const libro = await Libro.findById(req.params.id).populate("id_genero");

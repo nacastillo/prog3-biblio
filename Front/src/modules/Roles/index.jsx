@@ -109,7 +109,12 @@ function AltaRol() {
         }
         catch (err) {
             console.error(err);            
-            message.error(err.response.data);
+            if (err.response.data.code && err.response.data.code === 11000) {
+                message.error(`El siguiente campo se encuentra repetido:\n${JSON.stringify(err.response.data.keyValue)}`);
+            }
+            else {
+                message.error(err.message);
+            }
         }
     }
 

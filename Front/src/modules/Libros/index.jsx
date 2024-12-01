@@ -152,7 +152,7 @@ function Libros() {
                                 <Table 
                                     size = "middle"
                                     locale = {locale}
-                                    dataSource={libros} 
+                                    dataSource={libros.map(x => {return {...x, key: x._id}})} 
                                     columns={columnas}
                                     pagination = {{
                                         align: "center",
@@ -214,7 +214,7 @@ function AltaLibro() {
     const [formNuevo] = Form.useForm();    
 
     async function handle (v) {
-        try {            
+        try {                        
             const id = JSON.parse(v.id_genero)._id
             v.id_genero = id;
             const resp = await serv.crear("libros", v);
@@ -236,7 +236,12 @@ function AltaLibro() {
         }
         catch (err) {
             console.error(err);
-            message.error(err.message);
+            if (err.response.data.code && err.response.data.code === 11000) {
+                message.error(`El siguiente campo se encuentra repetido:\n${JSON.stringify(err.response.data.keyValue)}`);
+            }
+            else {
+                message.error(err.message);
+            }
         }
     }
 

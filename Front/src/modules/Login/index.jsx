@@ -1,8 +1,8 @@
-//import React from 'react';
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom"
-import { Button, Checkbox, Form, Input, message } from 'antd';
+import { Button, Form, Input, message } from 'antd';
 import { AuthContext } from "../../components/AuthContext";
+import { jwtDecode } from "jwt-decode";
 
 function Login() {
 
@@ -13,12 +13,13 @@ function Login() {
     async function handleSubmit (v) {
         try {
             await login(v.usr, v.pwd);
-            formLogin.resetFields();
-            nav("/");            
+            formLogin.resetFields(); 
+            const tok = jwtDecode(localStorage.getItem("nicastillo.prog3"));                
+            nav(`/${tok.rol === "Socio" ? "mis" : ""}prestamos`);
         }
         catch (err) {
             console.log(err);
-            message.error(err.message);
+            message.error(err.message); 
         }
     };    
 

@@ -18,21 +18,20 @@ try {
 }
 catch (err) {
     console.error(err)
-    process.exit(1); // Salir si no se puede conectar
+    process.exit(1);
 };
-// Listen on provided port, on all network interfaces.
+
 server.listen(port, printTitle())
 server.on('error', onError)
 server.on('listening', onListening)
 
-// Event listener for HTTP server "error" event.
+
 function onError(error) {
     if (error.syscall !== 'listen') {
         throw error
     }
     const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port
 
-    // handle specific listen errors with friendly messages
     switch (error.code) {
         case 'EACCES':
             console.error(bind + ' requires elevated privileges')
@@ -47,18 +46,15 @@ function onError(error) {
     }
 }
 
-// Event listener for HTTP server "listening" event.
 function onListening() {
     const addr = server.address()
     const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
     debug('Listening on ' + bind)
 }
 
-// Prints the app title and more specifications
 function printTitle() {    
     process.stdout.write(`\n${figlet.textSync(`biblioteca`, { font: 'Ogre' })}`);
-    process.stdout.write(`\n${figlet.textSync(process.env.NODE_ENV || "no env", { font: 'Ogre' })}\n`);
-    //process.stdout.write(`\nVersion: ${pkg.version}\nListening on port ${port}\n`,);
+    process.stdout.write(`\n${figlet.textSync(process.env.NODE_ENV || "no env", { font: 'Ogre' })}\n`);    
     process.stdout.write(`\nPuerto del backend: ${port}\n`);
 }
 
@@ -66,11 +62,3 @@ async function initDatabase() {
     await mongoose.connect(db_url + db_name);
     console.log(`Conexión a la base de datos exitosa.\n(${db_url + db_name})`);
 }
-
-/*
-initDatabase()
-    .then(() => {
-        console.log(`Conexión a la base de datos exitosa.\n(${db_url + db_name})`);        
-    })
-    .catch((err) => console.log(err))
-*/

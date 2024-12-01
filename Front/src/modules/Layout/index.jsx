@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react'
+import { useContext } from 'react'
 import { Outlet, Link } from 'react-router-dom'
 import { BookOutlined, CalendarOutlined, HomeOutlined, LoginOutlined, LogoutOutlined, QuestionCircleOutlined, SecurityScanOutlined, TagsOutlined, TeamOutlined,} from '@ant-design/icons'
 import { Col, Row, Layout, Menu } from 'antd'
@@ -18,32 +18,17 @@ function getItem(label, key, icon, children) {
 const App = () => {   
 
     const {autenticado, getFullName, getRol, esSocio, esBiblio, esAdmin} = useContext(AuthContext);
-    const items = [
-        getItem(<Link to="/"> Home </Link>, '1', <HomeOutlined />),
-        getItem(<Link to="about"> Acerca de </Link>, '2', <HomeOutlined />),
+    const items = [        
+        getItem(<Link to="about"> Acerca de </Link>, '2', <QuestionCircleOutlined />),
         !autenticado && getItem(<Link to="login"> Iniciar sesión </Link>, '3', <LoginOutlined />),                
         autenticado && getItem(<Link to = "libros"> Libros </Link>, '4', <BookOutlined />),
         esSocio() && getItem(<Link to = "misprestamos">Mis préstamos</Link>, "5", <CalendarOutlined />),        
         (esAdmin() || esBiblio()) && getItem(<Link to = "prestamos"> Prestamos </Link>, '6', <CalendarOutlined />),        
-        autenticado && getItem(<Link className="test" to = "generos">Generos</Link>,"7", <TagsOutlined />),
+        (esAdmin() || esBiblio()) && getItem(<Link className="test" to = "generos">Generos</Link>,"7", <TagsOutlined />),
         (esAdmin() || esBiblio()) && getItem(<Link to = "usuarios"> Usuarios </Link>, '8', <TeamOutlined />),        
         esAdmin() && getItem(<Link className="test" to = "roles"> Roles </Link>, '9', <SecurityScanOutlined />),                
         autenticado && getItem(<Link to= "logout" >Cerrar sesión</Link>, '10', <LogoutOutlined /> )
     ]    
-
-    const items2 = [
-        getItem(<Link to="/"> Home </Link>, '1', <HomeOutlined />),
-        getItem(<Link to="about"> Acerca de </Link>, '2', <HomeOutlined />),
-        getItem(<Link to="login"> Iniciar sesión </Link>, '3', <LoginOutlined />),                
-        getItem(<Link to = "libros"> Libros </Link>, '4', <BookOutlined />),
-        getItem(<Link to = "misprestamos">Mis préstamos</Link>, "5", <CalendarOutlined />),        
-        getItem(<Link to = "prestamos"> Prestamos </Link>, '6', <CalendarOutlined />),        
-        getItem(<Link className="test" to = "generos">Generos</Link>,"7", <TagsOutlined />),
-        getItem(<Link to = "usuarios"> Usuarios </Link>, '8', <TeamOutlined />),        
-        getItem(<Link className="test" to = "roles"> Roles </Link>, '9', <SecurityScanOutlined />),                
-        getItem(<Link to= "logout" >Cerrar sesión</Link>, '10', <LogoutOutlined /> )
-    ]    
-
        
     return (
         <Layout>

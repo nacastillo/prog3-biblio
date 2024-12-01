@@ -2,8 +2,8 @@ const express = require('express')
 const Prestamo = require('../schemas/prestamo')
 const Libro = require('../schemas/libro')
 const User = require('../schemas/user')
-const router = express.Router()
 
+const router = express.Router()
 router.get('/', getAllPrestamos)
 router.get("/misprestamos/:id", misPrestamos);
 router.post('/', crearPrestamo)
@@ -23,7 +23,7 @@ function fueraDeTermino (inicio, devuelto) {
 
 async function misPrestamos (req, res, next) {
     if (!req.params.id) {
-        return res.status(500).send("No hay ID de préstamo");
+        return res.status(400).send("No hay ID de préstamo");
     }
     try {
         const prestamos = await Prestamo.find({id_socio: req.params.id}).populate("id_libro");        
@@ -40,7 +40,10 @@ async function misPrestamos (req, res, next) {
 
 async function finalizarPrestamo (req, res, next) {
     if (!req.params.id) {
-        return res.status(500).send("No hay ID de préstamo");
+        return res.status(400).send("No hay ID de préstamo");
+    }
+    if (!req.userInfo.estaAutorizado) {
+        return res.status(403).send("No autorizado");
     }
     try {
         const prestamoA = await Prestamo.findById (req.params.id);
@@ -60,8 +63,7 @@ async function finalizarPrestamo (req, res, next) {
         const prestamo2 = await Prestamo.findById(req.params.id);
         const test = fueraDeTermino(prestamo2.fechaInicio, prestamo2.fechaDevuelto)        
         if (test === "Sí") {
-            const usr = await User.findById(prestamoA.id_socio);
-            console.log(usr);
+            const usr = await User.findById(prestamoA.id_socio);            
             await usr.updateOne({penalizadoHasta: new Date(prestamo2.fechaDevuelto.getTime() + 15 * 86400000)});
         }
         return res.send(prestamoA);
@@ -72,6 +74,9 @@ async function finalizarPrestamo (req, res, next) {
 }
 
 async function getAllPrestamos(req, res, next) {
+    if (!req.userInfo.estaAutorizado) {
+        return res.status(403).send("No autorizado");
+    }
     try {
         const prestamos = await Prestamo.find({}).populate('id_libro id_socio')
         const prestamos2 = prestamos.map(x => {
@@ -86,11 +91,14 @@ async function getAllPrestamos(req, res, next) {
 }
 
 async function crearPrestamo(req, res, next) {    
+    if (!req.userInfo.estaAutorizado) {
+        return res.status(403).send("No autorizado");
+    }
     if (!req.body.id_socio) {
-        return res.status(500).send('Falta ID del socio');
+        return res.status(400).send('Falta ID del socio');
     }
     if (!req.body.id_libro) {
-        return res.status(500).send('Falta ID del libro');
+        return res.status(400).send('Falta ID del libro');
     }
     try {
         const libro = await Libro.findById(req.body.id_libro);
@@ -109,13 +117,17 @@ async function crearPrestamo(req, res, next) {
         return res.send(prestamoN);
     }
     catch (err) {
-        return next(err)
+        console.error(err);        
+        return res.status(500).send(JSON.stringify(err));
     }
 }
 
-async function leerPrestamo(req, res, next) {    
+async function leerPrestamo(req, res, next) { 
+    if (!req.userInfo.estaAutorizado) {
+        return res.status(403).send("No autorizado");
+    }   
     if (!req.params.id) {
-        return res.status(500).send('Falta ID del préstamo')
+        return res.status(400).send('Falta ID del préstamo')
     }
     try {
         const prestamo = await Prestamo.findById(req.params.id).populate('id_libro id_socio')        
@@ -130,8 +142,11 @@ async function leerPrestamo(req, res, next) {
 }
 
 async function actualizarPrestamo(req, res, next) {    
+    if (!req.userInfo.estaAutorizado) {
+        return res.status(403).send("No autorizado");
+    }
     if (!req.params.id) {
-        return res.status(500).send('No hay _id');
+        return res.status(400).send('No hay _id');
     }
     try {
         const prestamoA = await Prestamo.findById (req.params.id)        
@@ -174,7 +189,10 @@ async function actualizarPrestamo(req, res, next) {
 
 async function borrarPrestamo(req, res, next) {
     if (!req.params.id) {
-        return res.status(500).send('No hay _id')
+        return res.status(400).send('No hay _id')
+    }
+    if (!req.userInfo.estaAutorizado) {
+        return res.status(403).send("No autorizado");
     }
     try {
         const prestamo = await Prestamo.findById(req.params.id).populate("id_libro id_socio");

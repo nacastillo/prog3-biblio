@@ -10,14 +10,22 @@ const api = axios.create({
 
 api.interceptors.request.use (
     (conf) => {
+        const token = localStorage.getItem("nicastillo.prog3");
+        if (token) {
+            conf.headers["Authorization"] = token;
+        }
         return conf;
     },
     (err) => Promise.reject(err)
 )
 
 api.interceptors.response.use (
-    (res) => res.data,    
-    (err) => Promise.reject(err)
+    (res) => {        
+        return res.data
+    },    
+    (err) => {        
+        return Promise.reject(err)
+    }
 )
 
 export default api

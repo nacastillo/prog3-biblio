@@ -45,8 +45,7 @@ const datos2 = [
 
 function Home () {
     const [novedades, setNovedades] = useState([]);
-
-    // despues agregarle async
+    
     function pegar () {
         try {
             setNovedades(datos2);

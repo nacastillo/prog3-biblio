@@ -30,8 +30,7 @@ function Generos() {
             setCargando(true);
             const res = await serv.getAll('generos');
             setGeneros(res);
-            setCargando(false);
-            //columnas[1].filters = generos.map(x => {return {text: x.desc, value: x.desc}})
+            setCargando(false);            
         }
         catch (err) {
             console.error(err);
@@ -40,12 +39,9 @@ function Generos() {
     }
 
     useEffect(() => {
-        pegar();
-        //console.log(generos)
-        //columnas[1].filters = generos.map(x => {return {text: x.desc, value: x.desc}})
+        pegar();        
     }, []);
 
-    //console.log(generos)
     columnas[1].filters = generos.map(x => {return {text: x.desc, value: x.desc}})
 
     return (
@@ -79,7 +75,7 @@ function Generos() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px' }}>
                                 <Table                                 
                                 size = "middle"
-                                dataSource={generos} 
+                                dataSource={generos.map(x => {return {...x, key: x._id}})} 
                                 columns={columnas} 
                                 pagination = {{
                                     align: "center",
@@ -114,11 +110,17 @@ function AltaGenero() {
                 </>
             );
             formNuevo.resetFields();
-            setModalN(false);            
+            setModalN(false);
+            pegar();            
         }
         catch (err) {
             console.error(err);
-            message.error(err.response.data);
+            if (err.response.data.code && err.response.data.code === 11000) {                
+                message.error(`El siguiente campo se encuentra repetido:\n${JSON.stringify(err.response.data.keyValue)}`);
+            }
+            else {
+                message.error(err.message);
+            }
         }
     }
 
