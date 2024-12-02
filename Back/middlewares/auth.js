@@ -14,8 +14,7 @@ function auth (req, res, next ) {
         const info = jwtutils.extraerInfo(jwtutils.limpiarToken(token));        
         req.userInfo = {};
         req.userInfo.esAdmin = info.rol === "Administrador"        
-        req.userInfo.estaAutorizado = info.rol === "Administrador" || info.rol === "Bibliotecario";
-        console.log(req.userInfo)
+        req.userInfo.estaAutorizado = info.rol === "Administrador" || info.rol === "Bibliotecario";        
         next();
     }
     catch (err) {        

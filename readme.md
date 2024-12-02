@@ -15,10 +15,10 @@ Para hacer funcionar tanto el front como el back, ejecutar el comando
 
 en las carpetas _Front_ y _Back_. Luego, para poder realizar la migración de la base de datos (en la carpeta Back) ejecutar:
 
-`npm run migrate up`
+`npm run migrate-dev up`
 
 Para que corran los servidores, tanto del front como del back, ejecutar en cada carpeta:
 
 `npm run dev`
 
-Sin configurar un archivo .env, el front corre sobre el puerto 5176 y el back sobre el puerto 3000.
+Sin configurar un archivo .env, el front corre sobre el puerto 5173 y el back sobre el puerto 3000.

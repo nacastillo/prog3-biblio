@@ -12,6 +12,6 @@ export default defineConfig({
         "process.env": process.env || null
     },    
     server: {
-        port: process.env.PORT_FRONT || 5176
+        port: process.env.PORT_FRONT || 5173
     }
 })
